@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+    Copyright The WildFly Authors
+    SPDX-License-Identifier: Apache-2.0
+-->
+<arquillian xmlns="http://jboss.org/schema/arquillian" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jboss.org/schema/arquillian http://jboss.org/schema/arquillian/arquillian_1_0.xsd">
+	<group qualifier="vertx" default="true">
+		<container qualifier="vertx-1" mode="class">
+			<configuration>
+				<property name="options">{ "workerPoolSize": 50 }</property>
+				<property name="httpServerOptions">{ "host": "localhost", "port": 8080 }</property>
+			</configuration>
+		</container>
+		<container qualifier="vertx-2" mode="class">
+			<configuration>
+				<property name="options">{ "workerPoolSize": 50 }</property>
+				<property name="httpServerOptions">{ "host": "localhost", "port": 8180 }</property>
+			</configuration>
+		</container>
+		<container qualifier="vertx-3" mode="class">
+			<configuration>
+				<property name="options">{ "workerPoolSize": 50 }</property>
+				<property name="httpServerOptions">{ "host": "localhost", "port": 8280 }</property>
+			</configuration>
+		</container>
+	</group>
+</arquillian>

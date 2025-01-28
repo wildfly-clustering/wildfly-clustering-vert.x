@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package io.vertx.core.json;
+
+import "org.wildfly.clustering.marshalling.protostream.proto";
+import "org.wildfly.clustering.marshalling.protostream.util.proto";
+
+/**
+ * @TypeId(300)
+ */
+message JsonArray {
+	repeated	org.wildfly.clustering.marshalling.protostream.Any	element	= 1;
+}
+
+/**
+ * @TypeId(301)
+ */
+message JsonObject {
+	repeated	org.wildfly.clustering.marshalling.protostream.util.StringKeyMapEntry	entry	= 1;
+}

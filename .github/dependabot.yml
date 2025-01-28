@@ -1,0 +1,11 @@
+version: 2
+updates:
+  - package-ecosystem: "maven"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    ignore:
+      - dependency-name: org.infinispan:infinispan-bom
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+      - dependency-name: org.jgroups:jgroups
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]

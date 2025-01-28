@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+	Copyright The WildFly Authors
+	SPDX-License-Identifier: Apache-2.0
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>org.jboss</groupId>
+		<artifactId>jboss-parent</artifactId>
+		<version>48</version>
+		<relativePath/>
+	</parent>
+
+	<groupId>org.wildfly.clustering.vertx</groupId>
+	<artifactId>wildfly-clustering-vertx-bom</artifactId>
+	<version>1.0.0.Beta1-SNAPSHOT</version>
+	<packaging>pom</packaging>
+
+	<name>WildFly Clustering: Vert.x: BOM</name>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.wildfly.clustering.vertx</groupId>
+				<artifactId>wildfly-clustering-vertx-auth</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.wildfly.clustering.vertx</groupId>
+				<artifactId>wildfly-clustering-vertx-core</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.wildfly.clustering.vertx</groupId>
+				<artifactId>wildfly-clustering-vertx-web-arquillian</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.wildfly.clustering.vertx</groupId>
+				<artifactId>wildfly-clustering-vertx-web-infinispan-embedded</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.wildfly.clustering.vertx</groupId>
+				<artifactId>wildfly-clustering-vertx-web-infinispan-remote</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.wildfly.clustering.vertx</groupId>
+				<artifactId>wildfly-clustering-vertx-web-session</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.wildfly.clustering.vertx</groupId>
+				<artifactId>wildfly-clustering-vertx-web-infinispan-embedded</artifactId>
+				<version>${project.version}</version>
+				<classifier>tests</classifier>
+			</dependency>
+			<dependency>
+				<groupId>org.wildfly.clustering.vertx</groupId>
+				<artifactId>wildfly-clustering-vertx-web-infinispan-remote</artifactId>
+				<version>${project.version}</version>
+				<classifier>tests</classifier>
+			</dependency>
+			<dependency>
+				<groupId>org.wildfly.clustering.vertx</groupId>
+				<artifactId>wildfly-clustering-vertx-web-session</artifactId>
+				<version>${project.version}</version>
+				<classifier>tests</classifier>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+</project>

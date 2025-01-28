@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+	Copyright The WildFly Authors
+	SPDX-License-Identifier: Apache-2.0
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>org.wildfly.clustering.vertx</groupId>
+		<artifactId>wildfly-clustering-vertx-web</artifactId>
+		<version>1.0.0.Beta1-SNAPSHOT</version>
+	</parent>
+
+	<artifactId>wildfly-clustering-vertx-web-infinispan</artifactId>
+	<packaging>pom</packaging>
+
+	<name>WildFly Clustering: Vert.x: Distributed session support: Infinispan modules</name>
+
+	<modules>
+		<module>embedded</module>
+		<module>remote</module>
+	</modules>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.kohsuke.metainf-services</groupId>
+			<artifactId>metainf-services</artifactId>
+			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>wildfly-clustering-vertx-web-session</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>wildfly-clustering-vertx-web-arquillian</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>wildfly-clustering-vertx-web-session</artifactId>
+			<scope>test</scope>
+			<classifier>tests</classifier>
+		</dependency>
+
+		<dependency>
+			<groupId>org.wildfly.clustering</groupId>
+			<artifactId>wildfly-clustering-arquillian</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.wildfly.clustering</groupId>
+			<artifactId>wildfly-clustering-session-spi</artifactId>
+			<classifier>tests</classifier>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.jboss.arquillian.junit5</groupId>
+			<artifactId>arquillian-junit5-container</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+</project>

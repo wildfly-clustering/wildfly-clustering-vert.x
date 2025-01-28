@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package org.wildfly.clustering.vertx.web.handler;
+
+import "org.wildfly.clustering.marshalling.protostream.proto";
+
+/**
+ * @TypeId(300)
+ */
+message UserHolder {
+	org.wildfly.clustering.marshalling.protostream.Any	user	= 1;
+}

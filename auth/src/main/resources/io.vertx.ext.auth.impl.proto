@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package io.vertx.ext.auth.impl;
+
+import "io.vertx.core.json.proto";
+import "org.wildfly.clustering.marshalling.protostream.util.proto";
+
+/**
+ * @TypeId(330)
+ */
+message UserImpl {
+	io.vertx.core.json.JsonObject	principal	= 1;
+	repeated	org.wildfly.clustering.marshalling.protostream.util.StringKeyMapEntry	entry	= 2;
+	io.vertx.core.json.JsonObject	attributes	= 3;
+}
