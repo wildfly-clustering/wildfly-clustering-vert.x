@@ -26,6 +26,7 @@ import io.vertx.ext.web.RequestBody;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
+import io.vertx.ext.web.UserContext;
 import io.vertx.ext.web.handler.impl.UserHolder;
 
 import org.infinispan.protostream.descriptors.WireType;
@@ -332,6 +333,11 @@ public class UserHolderMarshaller implements ProtoStreamMarshaller<UserHolder> {
 
 		@Override
 		public List<String> queryParam(String name) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public UserContext userContext() {
 			throw new UnsupportedOperationException();
 		}
 	}
