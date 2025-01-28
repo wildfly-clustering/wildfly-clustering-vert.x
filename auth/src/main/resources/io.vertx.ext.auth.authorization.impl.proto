@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+package io.vertx.ext.auth.authorization.impl;
+
+import "org.wildfly.clustering.marshalling.protostream.proto";
+
+/**
+ * @TypeId(320)
+ */
+message AndAuthorizationImpl {
+	repeated	org.wildfly.clustering.marshalling.protostream.Any	authorization	= 1;
+}
+
+/**
+ * @TypeId(321)
+ */
+message NotAuthorizationImpl {
+	org.wildfly.clustering.marshalling.protostream.Any	authorization	= 1;
+}
+
+/**
+ * @TypeId(322)
+ */
+message OrAuthorizationImpl {
+	repeated	org.wildfly.clustering.marshalling.protostream.Any	authorization	= 1;
+}
+
+/**
+ * @TypeId(323)
+ */
+message PermissionBasedAuthorizationImpl {
+	string	permission	= 1;
+}
+
+/**
+ * @TypeId(324)
+ */
+message RoleBasedAuthorizationImpl {
+	string	role	= 1;
+}
+
+/**
+ * @TypeId(325)
+ */
+message WildcardPermissionBasedAuthorizationImpl {
+	string	permission	= 1;
+}
