@@ -10,12 +10,12 @@
 		<groupId>org.jboss</groupId>
 		<artifactId>jboss-parent</artifactId>
 		<version>48</version>
-		<relativePath/>
+		<relativePath />
 	</parent>
 
 	<groupId>org.wildfly.clustering.vertx</groupId>
 	<artifactId>wildfly-clustering-vertx-bom</artifactId>
-	<version>1.0.0.Beta1-SNAPSHOT</version>
+	<version>1.0.0.Beta1</version>
 	<packaging>pom</packaging>
 
 	<name>WildFly Clustering: Vert.x: BOM</name>
@@ -73,4 +73,8 @@
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
+
+  <scm>
+    <tag>1.0.0.Beta1</tag>
+  </scm>
 </project>

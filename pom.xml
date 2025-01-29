@@ -9,7 +9,7 @@
 	<parent>
 		<groupId>org.wildfly.clustering.vertx</groupId>
 		<artifactId>wildfly-clustering-vertx-bom</artifactId>
-		<version>1.0.0.Beta1-SNAPSHOT</version>
+		<version>1.0.0.Beta1</version>
 		<relativePath>bom</relativePath>
 	</parent>
 
@@ -22,7 +22,7 @@
 		<connection>scm:git:git://github.com:wildfly-clustering/wildfly-clustering-vert.x.git</connection>
 		<developerConnection>scm:git:git@github.com:wildfly-clustering/wildfly-clustering-vert.x.git</developerConnection>
 		<url>https://github.com/wildfly-clustering/wildfly-clustering-vert.x</url>
-		<tag>HEAD</tag>
+		<tag>1.0.0.Beta1</tag>
 	</scm>
 
 	<properties>
