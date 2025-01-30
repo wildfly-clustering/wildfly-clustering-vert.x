@@ -1,4 +1,4 @@
-[![Version](https://img.shields.io/maven-central/v/org.wildfly.clustering/wildfly-clustering-vertx?style=for-the-badge&logo=redhat&logoColor=ee0000&label=javadoc)](https://javadoc.io/doc/org.wildfly.clustering/wildfly-clustering)
+[![Version](https://img.shields.io/maven-central/v/org.wildfly.clustering.vertx/wildfly-clustering-vertx?style=for-the-badge&logo=redhat&logoColor=ee0000&label=javadoc)](https://javadoc.io/doc/org.wildfly.clustering.vertx/wildfly-clustering-vertx)
 [![License](https://img.shields.io/github/license/wildfly-clustering/wildfly-clustering-vertx?style=for-the-badge&color=darkgreen&logo=apache&logoColor=d22128)](https://www.apache.org/licenses/LICENSE-2.0)
 [![Project Chat](https://img.shields.io/badge/zulip-chat-lightblue.svg?style=for-the-badge&logo=zulip&logoColor=ffffff)](https://wildfly.zulipchat.com/#narrow/stream/wildfly-clustering)
 
@@ -31,7 +31,7 @@ To bundle a SessionStore implementation wildfly-clustering-vert.x with your appl
 e.g.
 
 		<dependency>
-			<groupId>org.wildfly.clustering</group>
+			<groupId>org.wildfly.clustering.vertx</group>
 			<artifactId>wildfly-clustering-vertx-infinispan-embedded</artifactId>
 			<scope>runtime</scope>
 		</dependency>
@@ -39,7 +39,7 @@ e.g.
 or:
 
 		<dependency>
-			<groupId>org.wildfly.clustering</group>
+			<groupId>org.wildfly.clustering.vertx</group>
 			<artifactId>wildfly-clustering-vertx-infinispan-remote</artifactId>
 			<scope>runtime</scope>
 		</dependency>
