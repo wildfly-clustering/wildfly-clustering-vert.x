@@ -21,7 +21,7 @@ import org.wildfly.clustering.vertx.web.SessionPersistenceGranularity;
  */
 public class InfinispanSessionManagementArgumentsProvider implements ArgumentsProvider {
 
-	private final Set<String> templates = Set.of("dist-non-tx", "dist-tx", "repl-non-tx", "repl-tx");
+	private final Set<String> templates = Set.of("dist", "repl");
 
 	@Override
 	public Stream<? extends Arguments> provideArguments(ExtensionContext context) throws Exception {

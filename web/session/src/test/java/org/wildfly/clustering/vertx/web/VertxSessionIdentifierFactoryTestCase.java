@@ -28,11 +28,10 @@ public class VertxSessionIdentifierFactoryTestCase {
 		try {
 			VertxSessionIdentifierFactory factory = new VertxSessionIdentifierFactory(vertx.getOrCreateContext());
 			String id = factory.get();
-			System.out.println(id);
 			// Verify that our generated session ID will be accepted by SessionHandlerImpl.
 			assertThat(id.length()).isGreaterThan(SessionHandler.DEFAULT_SESSIONID_MIN_LENGTH);
-			ByteBuffer buffer = IdentifierMarshaller.HEX.write(id);
-			assertThat(IdentifierMarshaller.HEX.read(buffer)).isEqualTo(id);
+			ByteBuffer buffer = IdentifierMarshaller.HEX_LOWER.write(id);
+			assertThat(IdentifierMarshaller.HEX_LOWER.read(buffer)).isEqualTo(id);
 		} finally {
 			CompletableFuture<Void> future = new CompletableFuture<>();
 			vertx.close().onComplete(future::complete, future::completeExceptionally);

@@ -19,6 +19,6 @@ public class VertxIdentifierMarshallerProvider implements IdentifierMarshallerPr
 
 	@Override
 	public Marshaller<String, ByteBuffer> getMarshaller() {
-		return IdentifierMarshaller.HEX;
+		return IdentifierMarshaller.HEX_LOWER;
 	}
 }

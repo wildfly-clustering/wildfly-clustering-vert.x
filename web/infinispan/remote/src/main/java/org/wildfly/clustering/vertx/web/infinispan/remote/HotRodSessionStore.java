@@ -52,6 +52,14 @@ public class HotRodSessionStore extends DistributableSessionStore {
 	public static final String HOTROD_URI = "uri";
 	public static final String CONFIGURATION = "configuration";
 	public static final String PROPERTIES = "properties";
+	private static final String DEFAULT_CONFIGURATION = """
+			{
+			"distributed-cache": {
+				"mode": "SYNC",
+				"statistics": true
+			}
+		}
+	""";
 
 	static class NonBlockingThreadGroup extends ThreadGroup implements NonBlockingResource {
 		NonBlockingThreadGroup(String name) {
@@ -73,14 +81,7 @@ public class HotRodSessionStore extends DistributableSessionStore {
 				ClassLoader loader = deploymentOptions.getClassLoader();
 
 				URI uri = URI.create(Objects.requireNonNull(options.getString(HOTROD_URI)));
-				String cacheConfiguration = options.getString(CONFIGURATION, """
-					{
-						"distributed-cache": {
-							"mode": "SYNC",
-							"statistics": true
-						}
-					}
-				""");
+				String cacheConfiguration = options.getString(CONFIGURATION, DEFAULT_CONFIGURATION);
 				Properties properties = new Properties();
 				properties.putAll(options.getJsonObject(PROPERTIES, JsonObject.of()).getMap());
 

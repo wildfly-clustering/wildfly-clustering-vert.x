@@ -19,7 +19,7 @@ public class VertxSessionIdentifierFactory implements Supplier<String> {
 
 	private final VertxContextPRNG random;
 	private int bytes;
-	private final HexFormat hex = HexFormat.of().withUpperCase();
+	private final HexFormat hex = HexFormat.of().withLowerCase();
 
 	public VertxSessionIdentifierFactory(Context context) {
 		this.random = VertxContextPRNG.current(context);
