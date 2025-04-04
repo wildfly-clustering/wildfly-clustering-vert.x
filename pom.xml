@@ -37,7 +37,7 @@
 
 		<!-- Compile dependency versions -->
 		<version.io.github.resilience4j>2.2.0</version.io.github.resilience4j>
-		<version.io.vertx>4.5.13</version.io.vertx>
+		<version.io.vertx>4.5.14</version.io.vertx>
 		<version.org.infinispan>15.1.7.Final</version.org.infinispan>
 		<version.org.jboss.logmanager>3.1.2.Final</version.org.jboss.logmanager>
 		<version.org.jboss.marshalling>2.2.2.Final</version.org.jboss.marshalling>
