@@ -75,13 +75,17 @@ public enum SessionMethodHandler implements Handler<RoutingContext>, BiConsumer<
 	public void handle(RoutingContext context) {
 		HttpServerRequest request = context.request();
 		HttpServerResponse response = context.response();
-		Session session = context.session();
-		LOGGER.infof("[%s] %s;%s=%s", request.method(), request.absoluteURI(), SessionHandler.DEFAULT_SESSION_COOKIE_NAME, Optional.ofNullable(request.getCookie(SessionHandler.DEFAULT_SESSION_COOKIE_NAME)).map(Cookie::getValue).orElse(null));
-		this.accept(session, response);
-		if (!session.isDestroyed()) {
+		try {
+			Session session = context.session();
+			LOGGER.infof("[%s] %s;%s=%s", request.method(), request.absoluteURI(), SessionHandler.DEFAULT_SESSION_COOKIE_NAME, Optional.ofNullable(request.getCookie(SessionHandler.DEFAULT_SESSION_COOKIE_NAME)).map(Cookie::getValue).orElse(null));
 			response.putHeader(SessionManagementEndpointConfiguration.SESSION_ID, session.id());
+			this.accept(session, response);
+			if (!response.headWritten()) {
+				response.putHeader(SessionManagementEndpointConfiguration.SESSION_ID, session.isDestroyed() ? null : session.id());
+			}
+		} finally {
+			context.end();
 		}
-		context.end();
 	}
 
 	private static void recordSession(Session session, HttpServerResponse response, ToIntFunction<AtomicInteger> count) {
