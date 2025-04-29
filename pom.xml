@@ -43,7 +43,7 @@
 		<version.org.jboss.marshalling>2.2.2.Final</version.org.jboss.marshalling>
 		<version.org.kohsuke.metainf-services>1.11</version.org.kohsuke.metainf-services>
 		<version.org.jboss.marshalling>2.2.2.Final</version.org.jboss.marshalling>
-		<version.org.wildfly.clustering>6.0.1.Final</version.org.wildfly.clustering>
+		<version.org.wildfly.clustering>6.0.3.Final</version.org.wildfly.clustering>
 
 		<!-- Test dependency versions -->
 		<version.org.assertj>3.27.3</version.org.assertj>
