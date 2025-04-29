@@ -7,7 +7,7 @@ package org.wildfly.clustering.vertx.web.infinispan.embedded;
 import org.wildfly.clustering.context.DefaultThreadFactory;
 
 /**
- * Thread factory for non-blocking threads.
+ * Thread factory for blocking threads.
  * @author Paul Ferraro
  */
 public class DefaultBlockingThreadFactory extends DefaultThreadFactory {

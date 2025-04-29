@@ -6,6 +6,7 @@ package org.wildfly.clustering.vertx.web;
 
 import java.time.Instant;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import org.wildfly.clustering.cache.batch.Batch;
@@ -18,6 +19,7 @@ import org.wildfly.clustering.session.SessionManager;
  * A distributable Vert.x session.
  */
 public class DistributableSession implements VertxSession {
+	private static final System.Logger LOGGER = System.getLogger(DistributableSession.class.getPackageName());
 
 	private final SessionManager<Void> manager;
 	private final SuspendedBatch batch;
@@ -111,15 +113,7 @@ public class DistributableSession implements VertxSession {
 
 	@Override
 	public void destroy() {
-		if (this.session.isValid()) {
-			try (Batch batch = this.batch.resume()) {
-				try (Session<Void> session = this.session) {
-					session.invalidate();
-				}
-			} finally {
-				this.closeTask.run();
-			}
-		}
+		this.close(Session::invalidate);
 	}
 
 	@Override
@@ -149,11 +143,20 @@ public class DistributableSession implements VertxSession {
 
 	@Override
 	public void close() {
-		if (this.session.isValid()) {
+		this.close(session -> session.getMetaData().setLastAccess(this.startTime, Instant.now()));
+	}
+
+	private void close(Consumer<Session<Void>> closeTask) {
+		Session<Void> session = this.session;
+		if (session.isValid()) {
 			try (Batch batch = this.batch.resume()) {
-				try (Session<Void> session = this.session) {
-					session.getMetaData().setLastAccess(this.startTime, Instant.now());
+				try {
+					closeTask.accept(session);
+				} finally {
+					session.close();
 				}
+			} catch (RuntimeException | Error e) {
+				LOGGER.log(System.Logger.Level.WARNING, e.getLocalizedMessage(), e);
 			} finally {
 				this.closeTask.run();
 			}

@@ -4,6 +4,9 @@
  */
 package org.wildfly.clustering.vertx.web;
 
+import java.time.Duration;
+import java.util.Optional;
+
 import io.vertx.ext.web.handler.SessionHandler;
 
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
@@ -17,7 +20,7 @@ import org.wildfly.clustering.vertx.web.routes.SessionRouterConfigurator;
  */
 public class AbstractSessionStoreITCase extends AbstractSessionManagerITCase<JavaArchive> {
 
-	protected AbstractSessionStoreITCase() {
+	protected AbstractSessionStoreITCase(Optional<Duration> failoverGracePeriod) {
 		super(new SessionManagementTesterConfiguration() {
 			@Override
 			public Class<?> getEndpointClass() {
@@ -27,6 +30,11 @@ public class AbstractSessionStoreITCase extends AbstractSessionManagerITCase<Jav
 			@Override
 			public boolean isNullableSession() {
 				return false;
+			}
+
+			@Override
+			public Optional<Duration> getFailoverGracePeriod() {
+				return failoverGracePeriod;
 			}
 		}, JavaArchive.class);
 	}
