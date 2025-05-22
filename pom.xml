@@ -36,19 +36,15 @@
 		<version.net.jcip>1.0</version.net.jcip>
 
 		<!-- Compile dependency versions -->
-		<version.io.github.resilience4j>2.2.0</version.io.github.resilience4j>
 		<version.io.vertx>4.5.14</version.io.vertx>
-		<version.org.infinispan>15.1.7.Final</version.org.infinispan>
-		<version.org.jboss.logmanager>3.1.2.Final</version.org.jboss.logmanager>
-		<version.org.jboss.marshalling>2.2.2.Final</version.org.jboss.marshalling>
 		<version.org.kohsuke.metainf-services>1.11</version.org.kohsuke.metainf-services>
-		<version.org.jboss.marshalling>2.2.2.Final</version.org.jboss.marshalling>
-		<version.org.wildfly.clustering>6.0.1.Final</version.org.wildfly.clustering>
+		<version.org.wildfly.clustering>6.0.4.Final</version.org.wildfly.clustering>
 
 		<!-- Test dependency versions -->
 		<version.org.assertj>3.27.3</version.org.assertj>
 		<version.org.jacoco>0.8.12</version.org.jacoco>
 		<version.org.jboss.arquillian>1.9.4.Final</version.org.jboss.arquillian>
+		<version.org.jboss.logmanager>3.1.2.Final</version.org.jboss.logmanager>
 		<version.org.jboss.shrinkwrap>1.2.6</version.org.jboss.shrinkwrap>
 		<version.org.junit>5.12.2</version.org.junit>
 		<version.org.mockito>5.18.0</version.org.mockito>
@@ -76,13 +72,6 @@
 				<groupId>org.assertj</groupId>
 				<artifactId>assertj-bom</artifactId>
 				<version>${version.org.assertj}</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
-			<dependency>
-				<groupId>org.infinispan</groupId>
-				<artifactId>infinispan-bom</artifactId>
-				<version>${version.org.infinispan}</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
@@ -152,6 +141,11 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<groupId>org.jboss.logmanager</groupId>
+			<artifactId>jboss-logmanager</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter</artifactId>
 			<scope>test</scope>
@@ -164,11 +158,6 @@
 		<dependency>
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-subclass</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.jboss.logmanager</groupId>
-			<artifactId>jboss-logmanager</artifactId>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

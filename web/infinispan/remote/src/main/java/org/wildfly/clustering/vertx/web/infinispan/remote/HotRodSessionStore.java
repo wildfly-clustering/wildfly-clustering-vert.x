@@ -53,13 +53,12 @@ public class HotRodSessionStore extends DistributableSessionStore {
 	public static final String CONFIGURATION = "configuration";
 	public static final String PROPERTIES = "properties";
 	private static final String DEFAULT_CONFIGURATION = """
-			{
-			"distributed-cache": {
-				"mode": "SYNC",
-				"statistics": true
-			}
-		}
-	""";
+{
+	"distributed-cache" : {
+		"mode" : "SYNC",
+		"statistics" : "true",
+	}
+}""";
 
 	static class NonBlockingThreadGroup extends ThreadGroup implements NonBlockingResource {
 		NonBlockingThreadGroup(String name) {

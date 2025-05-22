@@ -7,6 +7,8 @@ package org.wildfly.clustering.vertx.web.infinispan.remote;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.time.Duration;
+import java.util.Optional;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
@@ -32,6 +34,10 @@ public class HotRodSessionStoreITCase extends AbstractSessionStoreITCase {
 
 	private final Manifest manifest = new Manifest();
 
+	public HotRodSessionStoreITCase() {
+		super(Optional.of(Duration.ofSeconds(2)));
+	}
+
 	@ParameterizedTest(name = ParameterizedTest.ARGUMENTS_PLACEHOLDER)
 	@ArgumentsSource(HotRodSessionManagementArgumentsProvider.class)
 	public void test(SessionManagementParameters parameters) {
@@ -40,7 +46,10 @@ public class HotRodSessionStoreITCase extends AbstractSessionStoreITCase {
 		attributes.put(Attributes.Name.MANIFEST_VERSION, "1.0");
 		// TODO Figure out how to configure HASH_DISTRIBUTION_AWARE w/bridge networking
 		attributes.put(new Attributes.Name(HotRodSessionStore.HOTROD_URI), String.format("hotrod://%s:%s@%s:%d?intelligence=%s", container.getUsername(), container.getPassword(), container.getHost(), container.getPort(), "org.infinispan.LOCAL", container.isPortMapping() ? ClientIntelligence.BASIC : ClientIntelligence.HASH_DISTRIBUTION_AWARE));
-		attributes.put(new Attributes.Name(HotRodSessionStore.CONFIGURATION), "{\"local-cache\": { \"statistics\": \"true\"}}");
+		// Use local cache since our remote cluster has a single member
+		// Reduce expiration interval to speed up expiration verification
+		attributes.put(new Attributes.Name(HotRodSessionStore.CONFIGURATION), """
+{ "local-cache" : { "expiration" : { "interval" : 1000 }, "transaction" : { "mode" : "BATCH", "locking" : "PESSIMISTIC" }}}""");
 		attributes.put(new Attributes.Name(DistributableSessionManagerFactoryConfiguration.GRANULARITY), parameters.getSessionPersistenceGranularity().name());
 		attributes.put(new Attributes.Name(DistributableSessionManagerFactoryConfiguration.MARSHALLER), parameters.getSessionMarshallerFactory().name());
 		this.run();
