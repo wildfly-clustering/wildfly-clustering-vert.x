@@ -4,14 +4,12 @@
  */
 package org.wildfly.clustering.vertx.web;
 
-import java.util.function.Consumer;
-
 import io.vertx.core.Context;
 
+import org.wildfly.clustering.function.Consumer;
 import org.wildfly.clustering.session.ImmutableSession;
 import org.wildfly.clustering.session.spec.SessionEventListenerSpecificationProvider;
 import org.wildfly.clustering.session.spec.SessionSpecificationProvider;
-import org.wildfly.common.function.Functions;
 
 public enum VertxSessionSpecificationProvider implements SessionSpecificationProvider<ImmutableSession, Context>, SessionEventListenerSpecificationProvider<ImmutableSession, Void> {
 	INSTANCE;
@@ -28,16 +26,16 @@ public enum VertxSessionSpecificationProvider implements SessionSpecificationPro
 
 	@Override
 	public Consumer<ImmutableSession> preEvent(Void listener) {
-		return Functions.discardingConsumer();
+		return Consumer.empty();
 	}
 
 	@Override
 	public Consumer<ImmutableSession> postEvent(Void listener) {
-		return Functions.discardingConsumer();
+		return Consumer.empty();
 	}
 
 	@Override
-	public Void asEventListener(Consumer<ImmutableSession> preEvent, Consumer<ImmutableSession> postEvent) {
+	public Void asEventListener(java.util.function.Consumer<ImmutableSession> preEvent, java.util.function.Consumer<ImmutableSession> postEvent) {
 		return null;
 	}
 }

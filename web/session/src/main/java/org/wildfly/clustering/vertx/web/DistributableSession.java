@@ -147,19 +147,16 @@ public class DistributableSession implements VertxSession {
 	}
 
 	private void close(Consumer<Session<Void>> closeTask) {
-		Session<Void> session = this.session;
-		if (session.isValid()) {
-			try (Batch batch = this.batch.resume()) {
-				try {
+		try (Batch batch = this.batch.resume()) {
+			try (Session<Void> session = this.session) {
+				if (session.isValid()) {
 					closeTask.accept(session);
-				} finally {
-					session.close();
 				}
-			} catch (RuntimeException | Error e) {
-				LOGGER.log(System.Logger.Level.WARNING, e.getLocalizedMessage(), e);
-			} finally {
-				this.closeTask.run();
 			}
+		} catch (RuntimeException | Error e) {
+			LOGGER.log(System.Logger.Level.WARNING, e.getLocalizedMessage(), e);
+		} finally {
+			this.closeTask.run();
 		}
 	}
 }
