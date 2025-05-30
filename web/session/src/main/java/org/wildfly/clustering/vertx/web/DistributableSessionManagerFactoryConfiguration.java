@@ -10,7 +10,6 @@ import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.ServiceLoader;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import io.vertx.core.Context;
@@ -19,11 +18,11 @@ import io.vertx.core.impl.ContextInternal;
 import io.vertx.core.impl.Deployment;
 import io.vertx.core.json.JsonObject;
 
+import org.wildfly.clustering.function.Supplier;
 import org.wildfly.clustering.marshalling.ByteBufferMarshaller;
 import org.wildfly.clustering.server.immutable.Immutability;
 import org.wildfly.clustering.session.SessionAttributePersistenceStrategy;
 import org.wildfly.clustering.session.SessionManagerFactoryConfiguration;
-import org.wildfly.common.function.Functions;
 
 /**
  * Configuration of a distributable session manager factory.
@@ -86,7 +85,7 @@ public class DistributableSessionManagerFactoryConfiguration implements SessionM
 
 	@Override
 	public Supplier<Void> getSessionContextFactory() {
-		return Functions.constantSupplier(null);
+		return Supplier.of(null);
 	}
 
 	@Override

@@ -18,18 +18,10 @@
 
 	<name>WildFly Clustering: Vert.x</name>
 
-	<scm>
-		<connection>scm:git:git://github.com:wildfly-clustering/wildfly-clustering-vert.x.git</connection>
-		<developerConnection>scm:git:git@github.com:wildfly-clustering/wildfly-clustering-vert.x.git</developerConnection>
-		<url>https://github.com/wildfly-clustering/wildfly-clustering-vert.x</url>
-		<tag>HEAD</tag>
-	</scm>
-
 	<properties>
-		<jdk.runtime.args>-Djava.util.logging.manager=org.jboss.logmanager.LogManager --add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.rmi/sun.rmi.transport=ALL-UNNAMED</jdk.runtime.args>
+		<jdk.runtime.args>-Dorg.jboss.logging.provider=jdk --add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.rmi/sun.rmi.transport=ALL-UNNAMED</jdk.runtime.args>
 		<jacoco.skip>true</jacoco.skip>
 		<maven.compiler.release>17</maven.compiler.release>
-		<maven.repository.url>https://repository.jboss.org/nexus/content/groups/public/</maven.repository.url>
 
 		<!-- Provided dependency versions -->
 		<version.jakarta.transaction>2.0.1</version.jakarta.transaction>
@@ -38,7 +30,7 @@
 		<!-- Compile dependency versions -->
 		<version.io.vertx>4.5.14</version.io.vertx>
 		<version.org.kohsuke.metainf-services>1.11</version.org.kohsuke.metainf-services>
-		<version.org.wildfly.clustering>6.0.4.Final</version.org.wildfly.clustering>
+		<version.org.wildfly.clustering>7.0.3.Final</version.org.wildfly.clustering>
 
 		<!-- Test dependency versions -->
 		<version.org.assertj>3.27.3</version.org.assertj>
@@ -48,7 +40,8 @@
 		<version.org.jboss.shrinkwrap>1.2.6</version.org.jboss.shrinkwrap>
 		<version.org.junit>5.12.2</version.org.junit>
 		<version.org.mockito>5.18.0</version.org.mockito>
-		<version.org.testcontainers>1.21.0</version.org.testcontainers>
+		<version.org.slf4j>2.0.17</version.org.slf4j>
+		<version.org.testcontainers>1.21.1</version.org.testcontainers>
 	</properties>
 
 	<modules>
@@ -104,6 +97,13 @@
 				<scope>import</scope>
 			</dependency>
 			<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>slf4j-bom</artifactId>
+				<version>${version.org.slf4j}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<dependency>
 				<groupId>org.testcontainers</groupId>
 				<artifactId>testcontainers-bom</artifactId>
 				<version>${version.org.testcontainers}</version>
@@ -130,6 +130,12 @@
 				<groupId>org.jboss.logmanager</groupId>
 				<artifactId>jboss-logmanager</artifactId>
 				<version>${version.org.jboss.logmanager}</version>
+				<exclusions>
+					<exclusion>
+						<groupId>org.jboss.logging</groupId>
+						<artifactId>jboss-logging</artifactId>
+					</exclusion>
+				</exclusions>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
@@ -316,32 +322,4 @@
 			</properties>
 		</profile>
 	</profiles>
-
-	<repositories>
-		<repository>
-			<id>default</id>
-			<url>${maven.repository.url}</url>
-			<layout>default</layout>
-			<releases>
-				<enabled>true</enabled>
-				<updatePolicy>never</updatePolicy>
-			</releases>
-			<snapshots>
-				<enabled>false</enabled>
-				<updatePolicy>never</updatePolicy>
-			</snapshots>
-		</repository>
-	</repositories>
-	<pluginRepositories>
-		<pluginRepository>
-			<id>default</id>
-			<url>${maven.repository.url}</url>
-			<releases>
-				<enabled>true</enabled>
-			</releases>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-		</pluginRepository>
-	</pluginRepositories>
 </project>

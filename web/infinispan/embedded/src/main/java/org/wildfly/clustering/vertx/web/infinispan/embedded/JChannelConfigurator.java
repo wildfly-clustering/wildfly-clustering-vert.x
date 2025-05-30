@@ -157,11 +157,6 @@ public class JChannelConfigurator implements JGroupsChannelConfigurator {
 	}
 
 	@Override
-	public void addChannelListener(ChannelListener listener) {
-		this.listeners.add(listener);
-	}
-
-	@Override
 	public void setSocketFactory(SocketFactory socketFactory) {
 	}
 

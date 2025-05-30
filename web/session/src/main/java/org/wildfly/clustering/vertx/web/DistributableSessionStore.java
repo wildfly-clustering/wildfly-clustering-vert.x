@@ -6,12 +6,9 @@ package org.wildfly.clustering.vertx.web;
 
 import java.time.Duration;
 import java.util.Map;
-import java.util.OptionalLong;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.StampedLock;
 import java.util.function.BiFunction;
-import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 import io.vertx.core.Context;
@@ -25,13 +22,13 @@ import org.jboss.logging.Logger;
 import org.wildfly.clustering.cache.batch.Batch;
 import org.wildfly.clustering.cache.batch.BatchContext;
 import org.wildfly.clustering.cache.batch.SuspendedBatch;
-import org.wildfly.clustering.server.util.MapEntry;
+import org.wildfly.clustering.function.Callable;
+import org.wildfly.clustering.function.Consumer;
 import org.wildfly.clustering.session.ImmutableSession;
 import org.wildfly.clustering.session.Session;
 import org.wildfly.clustering.session.SessionManager;
 import org.wildfly.clustering.session.SessionManagerConfiguration;
 import org.wildfly.clustering.session.SessionManagerFactory;
-import org.wildfly.common.function.Functions;
 
 /**
  * A distributable Vert.x session store.
@@ -45,7 +42,6 @@ public class DistributableSessionStore implements SessionStore {
 
 	private volatile Context context;
 	private volatile SessionManager<Void> manager;
-	private volatile OptionalLong lifecycleStamp = OptionalLong.empty();
 
 	public DistributableSessionStore(BiFunction<Context, JsonObject, SessionManagerFactory<Context, Void>> factory, Runnable closeTask) {
 		this.factory = factory;
@@ -66,7 +62,7 @@ public class DistributableSessionStore implements SessionStore {
 
 			@Override
 			public Consumer<ImmutableSession> getExpirationListener() {
-				return Functions.discardingConsumer();
+				return Consumer.empty();
 			}
 
 			@Override
@@ -91,13 +87,15 @@ public class DistributableSessionStore implements SessionStore {
 	@Override
 	public io.vertx.ext.web.Session createSession(long timeout) {
 		String id = this.manager.getIdentifierFactory().get();
-		Map.Entry<Batch, Runnable> batchEntry = this.createBatchEntry();
-		try {
+		Map.Entry<SuspendedBatch, Runnable> entry = this.createBatchEntry();
+		SuspendedBatch suspendedBatch = entry.getKey();
+		Runnable closeTask = entry.getValue();
+		try (BatchContext<Batch> context = suspendedBatch.resumeWithContext()) {
 			Session<Void> session = this.manager.createSession(id);
 			session.getMetaData().setTimeout(Duration.ofMillis(timeout));
-			return new DistributableSession(this.manager, session, batchEntry.getKey().suspend(), batchEntry.getValue());
+			return new DistributableSession(this.manager, session, suspendedBatch, closeTask);
 		} catch (RuntimeException | Error e) {
-			rollback(batchEntry.getKey(), batchEntry.getValue());
+			rollback(entry);
 			throw e;
 		}
 	}
@@ -110,24 +108,20 @@ public class DistributableSessionStore implements SessionStore {
 
 	@Override
 	public Future<io.vertx.ext.web.Session> get(String id) {
-		return this.context.executeBlocking(this::createSuspendedBatchEntry)
+		return this.context.executeBlocking(this::createBatchEntry)
 				.compose(entry -> {
-					try (BatchContext<Batch> batch = entry.getKey().resumeWithContext()) {
+					try (BatchContext<Batch> context = entry.getKey().resumeWithContext()) {
 						return Future.fromCompletionStage(this.manager.findSessionAsync(id), this.context)
-								.map(session -> (session != null) ? new DistributableSession(this.manager, session, entry.getKey(), entry.getValue()) : rollback(entry))
+								.map(session -> ((session != null) && session.isValid() && !session.getMetaData().isExpired()) ? new DistributableSession(this.manager, session, entry.getKey(), entry.getValue()) : rollback(entry))
 								.onFailure(e -> rollback(entry));
 					}
 				});
 	}
 
-	private MapEntry<SuspendedBatch, Runnable> createSuspendedBatchEntry() {
-		return this.createBatchEntry().map(Batch::suspend, Function.identity());
-	}
-
-	private MapEntry<Batch, Runnable> createBatchEntry() {
+	private Map.Entry<SuspendedBatch, Runnable> createBatchEntry() {
 		Runnable closeTask = this.getSessionCloseTask();
 		try {
-			return MapEntry.of(this.manager.getBatchFactory().get(), closeTask);
+			return Map.entry(this.manager.getBatchFactory().get().suspend(), closeTask);
 		} catch (RuntimeException | Error e) {
 			closeTask.run();
 			throw e;
@@ -135,18 +129,14 @@ public class DistributableSessionStore implements SessionStore {
 	}
 
 	private static io.vertx.ext.web.Session rollback(Map.Entry<SuspendedBatch, Runnable> entry) {
-		rollback(entry.getKey().resume(), entry.getValue());
-		return null;
-	}
-
-	private static void rollback(Batch resumedBatch, Runnable finallyTask) {
-		try (Batch batch = resumedBatch) {
+		try (Batch batch = entry.getKey().resume()) {
 			batch.discard();
 		} catch (RuntimeException | Error e) {
 			LOGGER.warn(e.getLocalizedMessage(), e);
 		} finally {
-			finallyTask.run();
+			entry.getValue().run();
 		}
+		return null;
 	}
 
 	@Override
@@ -159,10 +149,7 @@ public class DistributableSessionStore implements SessionStore {
 	public Future<Void> put(io.vertx.ext.web.Session session) {
 		if (session instanceof VertxSession) {
 			VertxSession vertxSession = (VertxSession) session;
-			return this.context.executeBlocking(() -> {
-				vertxSession.close();
-				return null;
-			});
+			return this.context.executeBlocking(Callable.of(vertxSession::close));
 		}
 		return Future.succeededFuture();
 	}
@@ -179,12 +166,10 @@ public class DistributableSessionStore implements SessionStore {
 
 	@Override
 	public void close() {
-		if (this.lifecycleStamp.isEmpty()) {
-			try {
-				this.lifecycleStamp = OptionalLong.of(this.lifecycleLock.writeLockInterruptibly());
-			} catch (InterruptedException e) {
-				Thread.currentThread().interrupt();
-			}
+		try {
+			this.lifecycleLock.writeLockInterruptibly();
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
 		}
 		try {
 			this.manager.stop();
@@ -206,7 +191,7 @@ public class DistributableSessionStore implements SessionStore {
 				// Ensure we only unlock once.
 				long stamp = stampRef.getAndSet(0L);
 				if (StampedLock.isReadLockStamp(stamp)) {
-					lock.unlock(stamp);
+					lock.unlockRead(stamp);
 				}
 			}
 		};
