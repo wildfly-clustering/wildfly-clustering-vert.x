@@ -29,7 +29,7 @@ public class InfinispanSessionStoreITCase extends AbstractSessionStoreITCase {
 		super(Optional.empty());
 	}
 
-	@ParameterizedTest(name = ParameterizedTest.ARGUMENTS_PLACEHOLDER)
+	@ParameterizedTest
 	@ArgumentsSource(InfinispanSessionManagementArgumentsProvider.class)
 	public void test(InfinispanSessionManagementParameters parameters) {
 		Attributes attributes = this.manifest.getMainAttributes();

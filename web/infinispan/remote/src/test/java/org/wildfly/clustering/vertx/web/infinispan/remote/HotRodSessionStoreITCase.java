@@ -38,7 +38,7 @@ public class HotRodSessionStoreITCase extends AbstractSessionStoreITCase {
 		super(Optional.of(Duration.ofSeconds(2)));
 	}
 
-	@ParameterizedTest(name = ParameterizedTest.ARGUMENTS_PLACEHOLDER)
+	@ParameterizedTest
 	@ArgumentsSource(HotRodSessionManagementArgumentsProvider.class)
 	public void test(SessionManagementParameters parameters) {
 		InfinispanServerContainer container = INFINISPAN.getContainer();
