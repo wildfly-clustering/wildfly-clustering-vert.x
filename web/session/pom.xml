@@ -14,7 +14,7 @@
 
 	<artifactId>wildfly-clustering-vertx-web-session</artifactId>
 
-	<name>WildFly Clustering: Vert.x: Distributed session support</name>
+	<name>WildFly Clustering: Vert.x Web: Session implementation</name>
 
 	<dependencies>
 		<dependency>

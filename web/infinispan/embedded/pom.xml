@@ -14,7 +14,7 @@
 
 	<artifactId>wildfly-clustering-vertx-web-infinispan-embedded</artifactId>
 
-	<name>WildFly Clustering: Vert.x: Distributed session support: Embedded Infinispan</name>
+	<name>WildFly Clustering: Vert.x Web: Infinispan: Embedded implementation</name>
 
 	<dependencies>
 		<dependency>

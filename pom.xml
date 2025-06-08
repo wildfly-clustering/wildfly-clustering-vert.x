@@ -16,7 +16,7 @@
 	<artifactId>wildfly-clustering-vertx</artifactId>
 	<packaging>pom</packaging>
 
-	<name>WildFly Clustering: Vert.x</name>
+	<name>WildFly Clustering: Vert.x: Modules</name>
 
 	<properties>
 		<jdk.runtime.args>-Dorg.jboss.logging.provider=jdk --add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.rmi/sun.rmi.transport=ALL-UNNAMED</jdk.runtime.args>
@@ -30,7 +30,7 @@
 		<!-- Compile dependency versions -->
 		<version.io.vertx>4.5.14</version.io.vertx>
 		<version.org.kohsuke.metainf-services>1.11</version.org.kohsuke.metainf-services>
-		<version.org.wildfly.clustering>7.0.4.Final</version.org.wildfly.clustering>
+		<version.org.wildfly.clustering>7.0.5.Final</version.org.wildfly.clustering>
 
 		<!-- Test dependency versions -->
 		<version.org.assertj>3.27.3</version.org.assertj>

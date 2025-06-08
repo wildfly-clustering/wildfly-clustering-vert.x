@@ -15,7 +15,7 @@
 	<artifactId>wildfly-clustering-vertx-web-infinispan</artifactId>
 	<packaging>pom</packaging>
 
-	<name>WildFly Clustering: Vert.x: Distributed session support: Infinispan modules</name>
+	<name>WildFly Clustering: Vert.x Web: Infinispan: Modules</name>
 
 	<modules>
 		<module>embedded</module>

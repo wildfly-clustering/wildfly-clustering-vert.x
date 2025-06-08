@@ -15,7 +15,7 @@
 	<artifactId>wildfly-clustering-vertx-web</artifactId>
 	<packaging>pom</packaging>
 
-	<name>WildFly Clustering: Vert.x: Web modules</name>
+	<name>WildFly Clustering: Vert.x Web: Modules</name>
 
 	<modules>
 		<module>arquillian</module>
