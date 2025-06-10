@@ -45,7 +45,6 @@ import org.infinispan.protostream.SerializationContext;
 import org.infinispan.protostream.SerializationContextInitializer;
 import org.infinispan.remoting.transport.jgroups.JGroupsChannelConfigurator;
 import org.infinispan.remoting.transport.jgroups.JGroupsTransport;
-import org.infinispan.transaction.TransactionMode;
 import org.infinispan.transaction.tm.EmbeddedTransactionManager;
 import org.infinispan.util.concurrent.BlockingManager;
 import org.infinispan.util.concurrent.NonBlockingManager;
@@ -237,8 +236,7 @@ public class InfinispanSessionStore extends DistributableSessionStore {
 					builder.encoding().mediaType(MediaType.APPLICATION_OBJECT_TYPE);
 
 					if (template.invocationBatching().enabled()) {
-						builder.invocationBatching().disable();
-						builder.transaction().transactionMode(TransactionMode.TRANSACTIONAL).transactionManagerLookup(EmbeddedTransactionManager::getInstance);
+						builder.transaction().transactionManagerLookup(EmbeddedTransactionManager::getInstance);
 					}
 
 					// Disable expiration

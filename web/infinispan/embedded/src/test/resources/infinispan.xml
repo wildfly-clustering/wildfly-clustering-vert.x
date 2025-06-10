@@ -9,9 +9,11 @@
 	<cache-container name="default" default-cache="dist">
 		<transport/>
 		<distributed-cache-configuration name="dist">
+			<locking acquire-timeout="15000"/>
 			<transaction mode="BATCH" locking="PESSIMISTIC"/>
 		</distributed-cache-configuration>
 		<replicated-cache-configuration name="repl">
+			<locking acquire-timeout="15000"/>
 			<transaction mode="BATCH" locking="PESSIMISTIC"/>
 		</replicated-cache-configuration>
 	</cache-container>
