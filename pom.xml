@@ -35,7 +35,7 @@
 		<!-- Test dependency versions -->
 		<version.org.assertj>3.27.3</version.org.assertj>
 		<version.org.jacoco>0.8.12</version.org.jacoco>
-		<version.org.jboss.arquillian>1.9.5.Final</version.org.jboss.arquillian>
+		<version.org.jboss.arquillian>1.10.0.Final</version.org.jboss.arquillian>
 		<version.org.jboss.logmanager>3.1.2.Final</version.org.jboss.logmanager>
 		<version.org.jboss.shrinkwrap>1.2.6</version.org.jboss.shrinkwrap>
 		<version.org.junit>5.13.1</version.org.junit>
