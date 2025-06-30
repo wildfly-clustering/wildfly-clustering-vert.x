@@ -5,11 +5,12 @@
 package org.wildfly.clustering.vertx.web;
 
 import java.util.HexFormat;
-import java.util.function.Supplier;
 
 import io.vertx.core.Context;
 import io.vertx.ext.auth.prng.VertxContextPRNG;
 import io.vertx.ext.web.handler.SessionHandler;
+
+import org.wildfly.clustering.function.Supplier;
 
 /**
  * @author Paul Ferraro
