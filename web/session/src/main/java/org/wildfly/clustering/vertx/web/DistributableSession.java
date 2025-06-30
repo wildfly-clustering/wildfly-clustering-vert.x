@@ -10,8 +10,8 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import org.wildfly.clustering.cache.batch.Batch;
-import org.wildfly.clustering.cache.batch.BatchContext;
 import org.wildfly.clustering.cache.batch.SuspendedBatch;
+import org.wildfly.clustering.context.Context;
 import org.wildfly.clustering.session.Session;
 import org.wildfly.clustering.session.SessionManager;
 
@@ -42,7 +42,7 @@ public class DistributableSession implements VertxSession {
 	public io.vertx.ext.web.Session regenerateId() {
 		Session<Void> oldSession = this.session;
 		String id = this.manager.getIdentifierFactory().get();
-		try (BatchContext<Batch> context = this.batch.resumeWithContext()) {
+		try (Context<Batch> context = this.batch.resumeWithContext()) {
 			Session<Void> newSession = this.manager.createSession(id);
 			try {
 				for (Map.Entry<String, Object> entry : oldSession.getAttributes().entrySet()) {

@@ -9,9 +9,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.StampedLock;
 import java.util.function.BiFunction;
-import java.util.function.Supplier;
 
-import io.vertx.core.Context;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
@@ -20,10 +18,11 @@ import io.vertx.ext.web.sstore.SessionStore;
 
 import org.jboss.logging.Logger;
 import org.wildfly.clustering.cache.batch.Batch;
-import org.wildfly.clustering.cache.batch.BatchContext;
 import org.wildfly.clustering.cache.batch.SuspendedBatch;
+import org.wildfly.clustering.context.Context;
 import org.wildfly.clustering.function.Callable;
 import org.wildfly.clustering.function.Consumer;
+import org.wildfly.clustering.function.Supplier;
 import org.wildfly.clustering.session.ImmutableSession;
 import org.wildfly.clustering.session.Session;
 import org.wildfly.clustering.session.SessionManager;
@@ -36,23 +35,23 @@ import org.wildfly.clustering.session.SessionManagerFactory;
 public class DistributableSessionStore implements SessionStore {
 	private static final Logger LOGGER = Logger.getLogger(DistributableSessionStore.class);
 
-	private final BiFunction<Context, JsonObject, SessionManagerFactory<Context, Void>> factory;
+	private final BiFunction<io.vertx.core.Context, JsonObject, SessionManagerFactory<io.vertx.core.Context, Void>> factory;
 	private final Runnable closeTask;
 	private final StampedLock lifecycleLock = new StampedLock();
 
-	private volatile Context context;
+	private volatile io.vertx.core.Context context;
 	private volatile SessionManager<Void> manager;
 
-	public DistributableSessionStore(BiFunction<Context, JsonObject, SessionManagerFactory<Context, Void>> factory, Runnable closeTask) {
+	public DistributableSessionStore(BiFunction<io.vertx.core.Context, JsonObject, SessionManagerFactory<io.vertx.core.Context, Void>> factory, Runnable closeTask) {
 		this.factory = factory;
 		this.closeTask = closeTask;
 	}
 
 	@Override
 	public SessionStore init(Vertx vertx, JsonObject options) {
-		Context context = vertx.getOrCreateContext();
+		io.vertx.core.Context context = vertx.getOrCreateContext();
 		this.context = context;
-		SessionManagerFactory<Context, Void> factory = this.factory.apply(this.context, options);
+		SessionManagerFactory<io.vertx.core.Context, Void> factory = this.factory.apply(this.context, options);
 		Supplier<String> identifierFactory = new VertxSessionIdentifierFactory(this.context);
 		this.manager = factory.createSessionManager(new SessionManagerConfiguration<>() {
 			@Override
@@ -71,7 +70,7 @@ public class DistributableSessionStore implements SessionStore {
 			}
 
 			@Override
-			public Context getContext() {
+			public io.vertx.core.Context getContext() {
 				return context;
 			}
 		});
@@ -90,7 +89,7 @@ public class DistributableSessionStore implements SessionStore {
 		Map.Entry<SuspendedBatch, Runnable> entry = this.createBatchEntry();
 		SuspendedBatch suspendedBatch = entry.getKey();
 		Runnable closeTask = entry.getValue();
-		try (BatchContext<Batch> context = suspendedBatch.resumeWithContext()) {
+		try (Context<Batch> context = suspendedBatch.resumeWithContext()) {
 			Session<Void> session = this.manager.createSession(id);
 			session.getMetaData().setTimeout(Duration.ofMillis(timeout));
 			return new DistributableSession(this.manager, session, suspendedBatch, closeTask);
@@ -110,7 +109,7 @@ public class DistributableSessionStore implements SessionStore {
 	public Future<io.vertx.ext.web.Session> get(String id) {
 		return this.context.executeBlocking(this::createBatchEntry)
 				.compose(entry -> {
-					try (BatchContext<Batch> context = entry.getKey().resumeWithContext()) {
+					try (Context<Batch> context = entry.getKey().resumeWithContext()) {
 						return Future.fromCompletionStage(this.manager.findSessionAsync(id), this.context)
 								.map(session -> ((session != null) && session.isValid() && !session.getMetaData().isExpired()) ? new DistributableSession(this.manager, session, entry.getKey(), entry.getValue()) : rollback(entry))
 								.onFailure(e -> rollback(entry));
@@ -149,7 +148,7 @@ public class DistributableSessionStore implements SessionStore {
 	public Future<Void> put(io.vertx.ext.web.Session session) {
 		if (session instanceof VertxSession) {
 			VertxSession vertxSession = (VertxSession) session;
-			return this.context.executeBlocking(Callable.of(vertxSession::close));
+			return this.context.executeBlocking(Callable.run(vertxSession::close));
 		}
 		return Future.succeededFuture();
 	}
