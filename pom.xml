@@ -28,7 +28,7 @@
 		<version.net.jcip>1.0</version.net.jcip>
 
 		<!-- Compile dependency versions -->
-		<version.io.vertx>4.5.14</version.io.vertx>
+		<version.io.vertx>5.0.1</version.io.vertx>
 		<version.org.kohsuke.metainf-services>1.11</version.org.kohsuke.metainf-services>
 		<version.org.wildfly.clustering>7.0.8.Final</version.org.wildfly.clustering>
 
