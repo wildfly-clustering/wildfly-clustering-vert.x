@@ -15,9 +15,6 @@ import java.util.function.BiFunction;
 
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import io.vertx.core.Context;
-import io.vertx.core.DeploymentOptions;
-import io.vertx.core.impl.ContextInternal;
-import io.vertx.core.impl.Deployment;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.sstore.SessionStore;
 
@@ -75,9 +72,8 @@ public class HotRodSessionStore extends DistributableSessionStore {
 		super(new BiFunction<>() {
 			@Override
 			public SessionManagerFactory<Context, Void> apply(Context context, JsonObject options) {
-				Deployment deployment = ContextInternal.current().getDeployment();
-				DeploymentOptions deploymentOptions = deployment.deploymentOptions();
-				ClassLoader loader = deploymentOptions.getClassLoader();
+				SessionManagerFactoryConfiguration<Void> factoryConfiguration = new DistributableSessionManagerFactoryConfiguration(context, options);
+				ClassLoader loader = factoryConfiguration.getClassLoader();
 
 				URI uri = URI.create(Objects.requireNonNull(options.getString(HOTROD_URI)));
 				String cacheConfiguration = options.getString(CONFIGURATION, DEFAULT_CONFIGURATION);
@@ -102,7 +98,6 @@ public class HotRodSessionStore extends DistributableSessionStore {
 				container.start();
 				closeTasks.add(0, container::close);
 
-				SessionManagerFactoryConfiguration<Void> factoryConfiguration = new DistributableSessionManagerFactoryConfiguration(context, options);
 				String deploymentName = factoryConfiguration.getDeploymentName();
 				OptionalInt maxActiveSessions = factoryConfiguration.getMaxActiveSessions();
 
