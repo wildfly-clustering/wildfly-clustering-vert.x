@@ -42,11 +42,11 @@ public class UserMarshallerTestCase {
 		RoleBasedAuthorization role1 = RoleBasedAuthorization.create("admin");
 		RoleBasedAuthorization role2 = RoleBasedAuthorization.create("user");
 		WildcardPermissionBasedAuthorization wildcard = WildcardPermissionBasedAuthorization.create("*");
-		user.authorizations().add("permissions", Set.of(permission, wildcard));
-		user.authorizations().add("roles", Set.of(role1, role2));
-		user.authorizations().add("not", NotAuthorization.create(permission));
-		user.authorizations().add("and", AndAuthorization.create().addAuthorization(role1).addAuthorization(role2));
-		user.authorizations().add("or", OrAuthorization.create().addAuthorization(permission).addAuthorization(wildcard));
+		user.authorizations().put("permissions", Set.of(permission, wildcard));
+		user.authorizations().put("roles", Set.of(role1, role2));
+		user.authorizations().put("not", NotAuthorization.create(permission));
+		user.authorizations().put("and", AndAuthorization.create().addAuthorization(role1).addAuthorization(role2));
+		user.authorizations().put("or", OrAuthorization.create().addAuthorization(permission).addAuthorization(wildcard));
 		tester.accept(user);
 	}
 }

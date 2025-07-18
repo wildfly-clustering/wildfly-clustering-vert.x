@@ -16,8 +16,9 @@ import java.util.stream.Stream;
 import io.vertx.core.Context;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.VertxOptions;
-import io.vertx.core.impl.ContextInternal;
-import io.vertx.core.impl.Deployment;
+import io.vertx.core.internal.ContextInternal;
+import io.vertx.core.internal.deployment.Deployment;
+import io.vertx.core.internal.deployment.DeploymentContext;
 import io.vertx.core.json.JsonObject;
 
 import org.wildfly.clustering.function.Supplier;
@@ -61,10 +62,10 @@ public class DistributableSessionManagerFactoryConfiguration implements SessionM
 	}
 
 	private DistributableSessionManagerFactoryConfiguration(ContextInternal context, JsonObject options) {
-		Optional<Deployment> deployment = Optional.ofNullable(context.getDeployment());
-		this.loader = deployment.map(Deployment::deploymentOptions).map(DeploymentOptions::getClassLoader).orElse(context.classLoader());
+		Optional<Deployment> deployment = Optional.ofNullable(context.deployment()).map(DeploymentContext::deployment);
+		this.loader = deployment.map(Deployment::options).map(DeploymentOptions::getClassLoader).orElse(context.classLoader());
 		this.deploymentName = options.getString(DEPLOYMENT_NAME, DistributableSessionStore.class.getSimpleName());
-		this.serverName = deployment.map(Deployment::verticleIdentifier).orElse(VertxOptions.DEFAULT_HA_GROUP);
+		this.serverName = deployment.map(Deployment::identifier).orElse(VertxOptions.DEFAULT_HA_GROUP);
 		this.maxSize = Optional.ofNullable(options.getInteger(MAX_ACTIVE_SESSIONS)).map(OptionalInt::of).orElse(OptionalInt.empty());
 		this.idleTimeout = Optional.ofNullable(options.getString(IDLE_TIMEOUT)).map(Duration::parse);
 		this.persistenceStrategy = SessionPersistenceGranularity.valueOf(options.getString(GRANULARITY, SessionPersistenceGranularity.ATTRIBUTE.name())).get();
