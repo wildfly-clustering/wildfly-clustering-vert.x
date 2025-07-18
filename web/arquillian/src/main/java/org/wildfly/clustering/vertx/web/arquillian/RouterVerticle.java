@@ -11,7 +11,7 @@ import io.vertx.core.Context;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
-import io.vertx.core.impl.ContextInternal;
+import io.vertx.core.internal.ContextInternal;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.sstore.SessionStore;
@@ -39,7 +39,7 @@ public class RouterVerticle extends AbstractVerticle {
 	@Override
 	public void start(Promise<Void> promise) {
 		// DistributableSessionStore.init(...) is blocking
-		this.store = this.context.executeBlocking(() -> SessionStore.create(this.context.owner(), this.context.config()));
+		this.store = this.context.executeBlocking(this::loadSessionStore);
 		Future<Void> future = this.store.map(store -> {
 			this.router.route().setName(SessionHandler.class.getName()).handler(SessionHandler.create(store));
 
@@ -49,7 +49,7 @@ public class RouterVerticle extends AbstractVerticle {
 			}
 			return null;
 		});
-		future.onComplete(promise::complete, promise::fail);
+		future.onComplete(promise::succeed, promise::fail);
 	}
 
 	@Override
@@ -61,9 +61,13 @@ public class RouterVerticle extends AbstractVerticle {
 				store.close();
 				return null;
 			};
-			this.context.executeBlocking(task).onComplete(promise::complete, promise::fail);
+			this.context.executeBlocking(task).onComplete(promise::succeed, promise::fail);
 		} else {
 			promise.fail(new IllegalStateException());
 		}
+	}
+
+	SessionStore loadSessionStore() {
+		return SessionStore.create(this.context.owner(), this.context.config());
 	}
 }

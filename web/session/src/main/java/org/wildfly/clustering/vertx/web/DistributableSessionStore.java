@@ -20,7 +20,6 @@ import org.jboss.logging.Logger;
 import org.wildfly.clustering.cache.batch.Batch;
 import org.wildfly.clustering.cache.batch.SuspendedBatch;
 import org.wildfly.clustering.context.Context;
-import org.wildfly.clustering.function.Callable;
 import org.wildfly.clustering.function.Consumer;
 import org.wildfly.clustering.function.Supplier;
 import org.wildfly.clustering.session.ImmutableSession;
@@ -156,10 +155,6 @@ public class DistributableSessionStore implements SessionStore {
 
 	@Override
 	public Future<Void> put(io.vertx.ext.web.Session session) {
-		if (session instanceof VertxSession) {
-			VertxSession vertxSession = (VertxSession) session;
-			return this.context.executeBlocking(Callable.run(vertxSession::close));
-		}
 		return Future.succeededFuture();
 	}
 

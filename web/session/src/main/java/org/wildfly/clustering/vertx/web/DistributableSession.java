@@ -137,11 +137,6 @@ public class DistributableSession implements VertxSession {
 	}
 
 	@Override
-	public void setAccessed() {
-		// Do nothing
-	}
-
-	@Override
 	public void close() {
 		this.close(session -> session.getMetaData().setLastAccess(this.startTime, Instant.now()));
 	}
