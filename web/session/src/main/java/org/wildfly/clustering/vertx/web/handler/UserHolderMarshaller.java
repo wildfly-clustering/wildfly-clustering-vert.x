@@ -14,8 +14,6 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
-import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.Cookie;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
@@ -28,6 +26,8 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.UserContext;
 import io.vertx.ext.web.handler.impl.UserHolder;
+import io.vertx.ext.web.impl.UserContextImpl;
+import io.vertx.ext.web.impl.UserContextInternal;
 
 import org.infinispan.protostream.descriptors.WireType;
 import org.wildfly.clustering.marshalling.protostream.ProtoStreamMarshaller;
@@ -94,25 +94,15 @@ public enum UserHolderMarshaller implements ProtoStreamMarshaller<UserHolder> {
 	}
 
 	private static class UserRoutingContext implements RoutingContext {
-		private volatile User user;
+		private volatile UserContextInternal context = new UserContextImpl(this);
 
 		UserRoutingContext(User user) {
-			this.user = user;
+			this.context.setUser(user);
 		}
 
 		@Override
-		public User user() {
-			return this.user;
-		}
-
-		@Override
-		public void setUser(User user) {
-			this.user = user;
-		}
-
-		@Override
-		public void clearUser() {
-			this.user = null;
+		public UserContext userContext() {
+			return this.context;
 		}
 
 		@Override
@@ -187,31 +177,6 @@ public enum UserHolderMarshaller implements ProtoStreamMarshaller<UserHolder> {
 
 		@Override
 		public String normalizedPath() {
-			throw new UnsupportedOperationException();
-		}
-
-		@Override
-		public Cookie getCookie(String name) {
-			throw new UnsupportedOperationException();
-		}
-
-		@Override
-		public RoutingContext addCookie(Cookie cookie) {
-			throw new UnsupportedOperationException();
-		}
-
-		@Override
-		public Cookie removeCookie(String name, boolean invalidate) {
-			throw new UnsupportedOperationException();
-		}
-
-		@Override
-		public int cookieCount() {
-			throw new UnsupportedOperationException();
-		}
-
-		@Override
-		public Map<String, Cookie> cookieMap() {
 			throw new UnsupportedOperationException();
 		}
 
@@ -296,16 +261,6 @@ public enum UserHolderMarshaller implements ProtoStreamMarshaller<UserHolder> {
 		}
 
 		@Override
-		public void setBody(Buffer body) {
-			throw new UnsupportedOperationException();
-		}
-
-		@Override
-		public void setSession(Session session) {
-			throw new UnsupportedOperationException();
-		}
-
-		@Override
 		public void setAcceptableContentType(String contentType) {
 			throw new UnsupportedOperationException();
 		}
@@ -337,11 +292,6 @@ public enum UserHolderMarshaller implements ProtoStreamMarshaller<UserHolder> {
 
 		@Override
 		public List<String> queryParam(String name) {
-			throw new UnsupportedOperationException();
-		}
-
-		@Override
-		public UserContext userContext() {
 			throw new UnsupportedOperationException();
 		}
 	}

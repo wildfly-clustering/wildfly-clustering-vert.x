@@ -18,6 +18,12 @@
 
 	<dependencies>
 		<dependency>
+			<groupId>org.kohsuke.metainf-services</groupId>
+			<artifactId>metainf-services</artifactId>
+			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
 			<groupId>org.wildfly.clustering</groupId>
 			<artifactId>wildfly-clustering-session-infinispan-remote</artifactId>
 		</dependency>
