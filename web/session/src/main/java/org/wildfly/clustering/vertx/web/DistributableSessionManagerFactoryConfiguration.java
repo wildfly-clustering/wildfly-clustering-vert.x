@@ -13,6 +13,7 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 import io.vertx.core.Context;
+import io.vertx.core.DeploymentOptions;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.impl.ContextInternal;
 import io.vertx.core.impl.Deployment;
@@ -43,10 +44,14 @@ public class DistributableSessionManagerFactoryConfiguration implements SessionM
 	private final Immutability immutability;
 
 	public DistributableSessionManagerFactoryConfiguration(Context context, JsonObject options) {
-		Deployment deployment = ((ContextInternal) context).getDeployment();
-		this.loader = (deployment != null) ? deployment.deploymentOptions().getClassLoader() : this.getClass().getClassLoader();
+		this((ContextInternal) context, options);
+	}
+
+	private DistributableSessionManagerFactoryConfiguration(ContextInternal context, JsonObject options) {
+		Optional<Deployment> deployment = Optional.ofNullable(context.getDeployment());
+		this.loader = deployment.map(Deployment::deploymentOptions).map(DeploymentOptions::getClassLoader).orElse(context.classLoader());
 		this.deploymentName = options.getString(DEPLOYMENT_NAME, DistributableSessionStore.class.getSimpleName());
-		this.serverName = (deployment != null) ? deployment.verticleIdentifier() : VertxOptions.DEFAULT_HA_GROUP;
+		this.serverName = deployment.map(Deployment::verticleIdentifier).orElse(VertxOptions.DEFAULT_HA_GROUP);
 		this.maxActiveSessions = Optional.ofNullable(options.getInteger(MAX_ACTIVE_SESSIONS)).map(OptionalInt::of).orElse(OptionalInt.empty());
 		this.persistenceStrategy = SessionPersistenceGranularity.valueOf(options.getString(GRANULARITY, SessionPersistenceGranularity.ATTRIBUTE.name())).get();
 		Function<ClassLoader, ByteBufferMarshaller> marshallerFactory = SessionAttributeMarshaller.valueOf(options.getString(MARSHALLER, SessionAttributeMarshaller.JBOSS.name()));
