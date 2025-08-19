@@ -147,10 +147,12 @@ public class DistributableSession implements VertxSession {
 	}
 
 	private void close(Consumer<Session<Void>> closeTask) {
-		try (Batch batch = this.batch.resume()) {
-			try (Session<Void> session = this.session) {
-				if (session.isValid()) {
-					closeTask.accept(session);
+		try (Context<Batch> context = this.batch.resumeWithContext()) {
+			try (Batch batch = context.get()) {
+				try (Session<Void> session = this.session) {
+					if (session.isValid()) {
+						closeTask.accept(session);
+					}
 				}
 			}
 		} catch (RuntimeException | Error e) {

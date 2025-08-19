@@ -111,7 +111,7 @@ public class DistributableSessionStore implements SessionStore {
 				.compose(entry -> {
 					try (Context<Batch> context = entry.getKey().resumeWithContext()) {
 						return Future.fromCompletionStage(this.manager.findSessionAsync(id), this.context)
-								.map(session -> ((session != null) && session.isValid() && !session.getMetaData().isExpired()) ? new DistributableSession(this.manager, session, entry.getKey(), entry.getValue()) : rollback(entry))
+								.map(session -> ((session != null) && session.isValid() && !session.getMetaData().isExpired()) ? new DistributableSession(this.manager, session, entry.getKey(), entry.getValue()) : close(entry))
 								.onFailure(e -> rollback(entry));
 					}
 				});
@@ -127,9 +127,19 @@ public class DistributableSessionStore implements SessionStore {
 		}
 	}
 
+	private static io.vertx.ext.web.Session close(Map.Entry<SuspendedBatch, Runnable> entry) {
+		return close(entry, Consumer.empty());
+	}
+
 	private static io.vertx.ext.web.Session rollback(Map.Entry<SuspendedBatch, Runnable> entry) {
-		try (Batch batch = entry.getKey().resume()) {
-			batch.discard();
+		return close(entry, Batch::discard);
+	}
+
+	private static io.vertx.ext.web.Session close(Map.Entry<SuspendedBatch, Runnable> entry, Consumer<Batch> batchTask) {
+		try (Context<Batch> context = entry.getKey().resumeWithContext()) {
+			try (Batch batch = context.get()) {
+				batchTask.accept(batch);
+			}
 		} catch (RuntimeException | Error e) {
 			LOGGER.warn(e.getLocalizedMessage(), e);
 		} finally {
