@@ -30,7 +30,7 @@
 		<!-- Compile dependency versions -->
 		<version.io.vertx>4.5.20</version.io.vertx>
 		<version.org.kohsuke.metainf-services>1.11</version.org.kohsuke.metainf-services>
-		<version.org.wildfly.clustering>7.0.10.Final</version.org.wildfly.clustering>
+		<version.org.wildfly.clustering>7.0.12.Final</version.org.wildfly.clustering>
 
 		<!-- Test dependency versions -->
 		<version.org.assertj>3.27.4</version.org.assertj>
@@ -209,6 +209,18 @@
 						</annotationProcessorPath>
 					</annotationProcessorPaths>
 				</configuration>
+				<executions>
+					<execution>
+						<id>default-testCompile</id>
+						<phase>test-compile</phase>
+						<goals>
+							<goal>testCompile</goal>
+						</goals>
+						<configuration>
+							<parameters>true</parameters>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
