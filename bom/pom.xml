@@ -15,7 +15,7 @@
 
 	<groupId>org.wildfly.clustering.vertx</groupId>
 	<artifactId>wildfly-clustering-vertx-bom</artifactId>
-	<version>2.0.0.Final</version>
+	<version>3.0.0.Final-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>WildFly Clustering: Vert.x: BOM</name>
@@ -38,7 +38,7 @@
 		<connection>scm:git:git://github.com:wildfly-clustering/wildfly-clustering-vert.x.git</connection>
 		<developerConnection>scm:git:git@github.com:wildfly-clustering/wildfly-clustering-vert.x.git</developerConnection>
 		<url>https://github.com/wildfly-clustering/wildfly-clustering-vert.x</url>
-		<tag>2.0.0.Final</tag>
+		<tag>HEAD</tag>
 	</scm>
 
 	<dependencyManagement>
