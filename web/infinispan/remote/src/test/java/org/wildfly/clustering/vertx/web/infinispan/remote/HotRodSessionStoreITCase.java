@@ -12,7 +12,6 @@ import java.util.Optional;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
-import org.infinispan.client.hotrod.configuration.ClientIntelligence;
 import org.jboss.shrinkwrap.api.asset.ByteArrayAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -44,8 +43,7 @@ public class HotRodSessionStoreITCase extends AbstractSessionStoreITCase {
 		InfinispanServerContainer container = INFINISPAN.getContainer();
 		Attributes attributes = this.manifest.getMainAttributes();
 		attributes.put(Attributes.Name.MANIFEST_VERSION, "1.0");
-		// TODO Figure out how to configure HASH_DISTRIBUTION_AWARE w/bridge networking
-		attributes.put(new Attributes.Name(HotRodSessionStore.HOTROD_URI), String.format("hotrod://%s:%s@%s:%d?intelligence=%s", container.getUsername(), container.getPassword(), container.getHost(), container.getPort(), "org.infinispan.LOCAL", container.isPortMapping() ? ClientIntelligence.BASIC : ClientIntelligence.HASH_DISTRIBUTION_AWARE));
+		attributes.put(new Attributes.Name(HotRodSessionStore.HOTROD_URI), String.format("hotrod://%s:%s@%s:%d", container.getUsername(), container.getPassword(), container.getHost(), container.getPort()));
 		// Use local cache since our remote cluster has a single member
 		// Reduce expiration interval to speed up expiration verification
 		attributes.put(new Attributes.Name(HotRodSessionStore.CONFIGURATION), """
