@@ -18,6 +18,7 @@ import io.vertx.core.Context;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.sstore.SessionStore;
 
+import org.infinispan.client.hotrod.DataFormat;
 import org.infinispan.client.hotrod.RemoteCache;
 import org.infinispan.client.hotrod.RemoteCacheManager;
 import org.infinispan.client.hotrod.configuration.Configuration;
@@ -25,17 +26,22 @@ import org.infinispan.client.hotrod.configuration.ConfigurationBuilder;
 import org.infinispan.client.hotrod.configuration.NearCacheMode;
 import org.infinispan.client.hotrod.configuration.TransactionMode;
 import org.infinispan.client.hotrod.impl.HotRodURI;
+import org.infinispan.commons.dataconversion.MediaType;
 import org.infinispan.commons.executors.NonBlockingResource;
 import org.kohsuke.MetaInfServices;
 import org.wildfly.clustering.cache.infinispan.marshalling.MediaTypes;
 import org.wildfly.clustering.cache.infinispan.marshalling.UserMarshaller;
 import org.wildfly.clustering.cache.infinispan.remote.RemoteCacheConfiguration;
+import org.wildfly.clustering.function.Runnable;
 import org.wildfly.clustering.marshalling.protostream.ClassLoaderMarshaller;
 import org.wildfly.clustering.marshalling.protostream.ProtoStreamByteBufferMarshaller;
 import org.wildfly.clustering.marshalling.protostream.SerializationContextBuilder;
+import org.wildfly.clustering.session.ImmutableSession;
 import org.wildfly.clustering.session.SessionManagerFactory;
 import org.wildfly.clustering.session.SessionManagerFactoryConfiguration;
 import org.wildfly.clustering.session.infinispan.remote.HotRodSessionManagerFactory;
+import org.wildfly.clustering.session.spec.SessionEventListenerSpecificationProvider;
+import org.wildfly.clustering.session.spec.SessionSpecificationProvider;
 import org.wildfly.clustering.vertx.web.DistributableSessionManagerFactoryConfiguration;
 import org.wildfly.clustering.vertx.web.DistributableSessionStore;
 import org.wildfly.clustering.vertx.web.VertxSessionSpecificationProvider;
@@ -46,8 +52,11 @@ import org.wildfly.clustering.vertx.web.VertxSessionSpecificationProvider;
  */
 @MetaInfServices(SessionStore.class)
 public class HotRodSessionStore extends DistributableSessionStore {
+	/** The name of the property specifying the HotRod uri */
 	public static final String HOTROD_URI = "uri";
+	/** The name of the property specifying the remote cache configuration */
 	public static final String CONFIGURATION = "configuration";
+	/** The name of the property specifying additional HotRod properties */
 	public static final String PROPERTIES = "properties";
 	private static final String DEFAULT_CONFIGURATION = """
 {
@@ -64,6 +73,9 @@ public class HotRodSessionStore extends DistributableSessionStore {
 	}
 	private static final AtomicInteger COUNTER = new AtomicInteger(0);
 
+	/**
+	 * Creates a session store.
+	 */
 	public HotRodSessionStore() {
 		this(new LinkedList<>());
 	}
@@ -99,7 +111,7 @@ public class HotRodSessionStore extends DistributableSessionStore {
 				closeTasks.add(0, container::close);
 
 				String deploymentName = factoryConfiguration.getDeploymentName();
-				OptionalInt maxActiveSessions = factoryConfiguration.getMaxActiveSessions();
+				OptionalInt maxActiveSessions = factoryConfiguration.getMaxSize();
 
 				container.getConfiguration().addRemoteCache(deploymentName, builder -> builder.forceReturnValues(false).nearCacheMode(maxActiveSessions.isEmpty() ? NearCacheMode.DISABLED : NearCacheMode.INVALIDATED).transactionMode(TransactionMode.NONE).configuration(cacheConfiguration));
 
@@ -108,14 +120,34 @@ public class HotRodSessionStore extends DistributableSessionStore {
 				cache.start();
 				closeTasks.add(0, cache::stop);
 
-				return new HotRodSessionManagerFactory<>(factoryConfiguration, VertxSessionSpecificationProvider.INSTANCE, VertxSessionSpecificationProvider.INSTANCE, new RemoteCacheConfiguration() {
-					@SuppressWarnings("unchecked")
+				DataFormat format = DataFormat.builder()
+						.keyType(MediaType.APPLICATION_OBJECT).keyMarshaller(container.getMarshaller())
+						.valueType(MediaType.APPLICATION_OBJECT).valueMarshaller(container.getMarshaller())
+						.build();
+				return new HotRodSessionManagerFactory<>(new HotRodSessionManagerFactory.Configuration<ImmutableSession, Context, Void, Void>() {
 					@Override
-					public <CK, CV> RemoteCache<CK, CV> getCache() {
-						return (RemoteCache<CK, CV>) cache;
+					public SessionManagerFactoryConfiguration<Void> getSessionManagerFactoryConfiguration() {
+						return factoryConfiguration;
+					}
+
+					@Override
+					public SessionSpecificationProvider<ImmutableSession, Context> getSessionSpecificationProvider() {
+						// TODO Auto-generated method stub
+						return VertxSessionSpecificationProvider.INSTANCE;
+					}
+
+					@Override
+					public SessionEventListenerSpecificationProvider<ImmutableSession, Void> getSessionEventListenerSpecificationProvider() {
+						// TODO Auto-generated method stub
+						return VertxSessionSpecificationProvider.INSTANCE;
+					}
+
+					@Override
+					public RemoteCacheConfiguration getCacheConfiguration() {
+						return RemoteCacheConfiguration.of(cache.withDataFormat(format));
 					}
 				});
 			}
-		}, () -> closeTasks.forEach(Runnable::run));
+		}, Runnable.runAll(closeTasks));
 	}
 }

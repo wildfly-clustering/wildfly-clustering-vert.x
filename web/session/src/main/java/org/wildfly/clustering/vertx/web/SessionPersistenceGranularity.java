@@ -9,10 +9,13 @@ import java.util.function.Supplier;
 import org.wildfly.clustering.session.SessionAttributePersistenceStrategy;
 
 /**
+ * Enumerates the supported strategies for persisting session attributes.
  * @author Paul Ferraro
  */
 public enum SessionPersistenceGranularity implements Supplier<SessionAttributePersistenceStrategy> {
+	/** A strategy that always persists all attributes of a session, where any shared object references between attributes are preserved. */
 	SESSION(SessionAttributePersistenceStrategy.COARSE),
+	/** A strategy that only persists modified/mutable attributes of a session, where any shared object references between attributes are not preserved. */
 	ATTRIBUTE(SessionAttributePersistenceStrategy.FINE),
 	;
 	private final SessionAttributePersistenceStrategy strategy;

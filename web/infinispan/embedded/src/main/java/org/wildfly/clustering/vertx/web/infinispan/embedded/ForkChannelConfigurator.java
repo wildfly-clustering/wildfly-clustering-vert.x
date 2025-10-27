@@ -15,6 +15,7 @@ import org.jgroups.fork.ForkChannel;
 import org.jgroups.util.SocketFactory;
 
 /**
+ * Configurator used to create fork channels.
  * @author Paul Ferraro
  */
 public class ForkChannelConfigurator implements JGroupsChannelConfigurator {
@@ -22,6 +23,11 @@ public class ForkChannelConfigurator implements JGroupsChannelConfigurator {
 	private final JChannel channel;
 	private final String forkName;
 
+	/**
+	 * Creates a configurator using the specified channel and fork name
+	 * @param channel a JGroups channel
+	 * @param forkName a fork name
+	 */
 	public ForkChannelConfigurator(JChannel channel, String forkName) {
 		this.channel = channel;
 		this.forkName = forkName;

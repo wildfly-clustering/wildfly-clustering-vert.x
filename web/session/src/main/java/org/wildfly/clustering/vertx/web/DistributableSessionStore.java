@@ -42,6 +42,11 @@ public class DistributableSessionStore implements SessionStore {
 	private volatile io.vertx.core.Context context;
 	private volatile SessionManager<Void> manager;
 
+	/**
+	 * Creates a new distributable Vert.x session store.
+	 * @param factory a function for creating a session manager factory.
+	 * @param closeTask a task to run on {@link SessionStore#close()}.
+	 */
 	public DistributableSessionStore(BiFunction<io.vertx.core.Context, JsonObject, SessionManagerFactory<io.vertx.core.Context, Void>> factory, Runnable closeTask) {
 		this.factory = factory;
 		this.closeTask = closeTask;

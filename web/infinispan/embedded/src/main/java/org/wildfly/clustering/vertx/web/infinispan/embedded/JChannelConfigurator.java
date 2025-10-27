@@ -44,6 +44,7 @@ import org.jgroups.util.StackType;
 import org.jgroups.util.Util;
 
 /**
+ * Configurator used to create JGroups channels.
  * @author Paul Ferraro
  */
 public class JChannelConfigurator implements JGroupsChannelConfigurator {
@@ -55,6 +56,12 @@ public class JChannelConfigurator implements JGroupsChannelConfigurator {
 	private final ProtocolStackConfigurator configurator;
 	private final List<ChannelListener> listeners = new LinkedList<>();
 
+	/**
+	 * Creates a configurator using the specified transport configuration and class loader
+	 * @param transport a transport configuration
+	 * @param loader a class loader used to locate the JGroups configuration
+	 * @throws IOException if the JGroups configuration could not be loaded
+	 */
 	public JChannelConfigurator(TransportConfiguration transport, ClassLoader loader) throws IOException {
 		this.name = transport.stack();
 		this.configurator = getProtocolStackConfigurator(transport, loader);

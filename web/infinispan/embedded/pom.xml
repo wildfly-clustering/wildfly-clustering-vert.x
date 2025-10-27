@@ -14,7 +14,7 @@
 
 	<artifactId>wildfly-clustering-vertx-web-infinispan-embedded</artifactId>
 
-	<name>WildFly Clustering: Vert.x Web: Infinispan: Embedded implementation</name>
+	<name>${project.vertx.web.infinispan}: Embedded</name>
 
 	<dependencies>
 		<dependency>

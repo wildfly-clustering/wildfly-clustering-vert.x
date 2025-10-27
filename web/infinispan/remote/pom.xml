@@ -14,7 +14,7 @@
 
 	<artifactId>wildfly-clustering-vertx-web-infinispan-remote</artifactId>
 
-	<name>WildFly Clustering: Vert.x Web: Infinispan: Remote implementation</name>
+	<name>${project.vertx.web.infinispan}: Remote</name>
 
 	<dependencies>
 		<dependency>

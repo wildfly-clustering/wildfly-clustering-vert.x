@@ -14,7 +14,7 @@
 
 	<artifactId>wildfly-clustering-vertx-core</artifactId>
 
-	<name>WildFly Clustering: Vert.x: Core support</name>
+	<name>${project.repository.name}: Core</name>
 
 	<dependencies>
 		<dependency>

@@ -23,9 +23,13 @@ import org.wildfly.clustering.marshalling.jboss.ExternalizerProvider;
  */
 public class ClusterSerializableExternalizerProvider implements ExternalizerProvider, Externalizer {
 	private static final long serialVersionUID = -4684446380186460640L;
-
+	/** The constructor on the serialization type */
 	private final Constructor<?> constructor;
 
+	/**
+	 * Creates an externalizer provider for the specified type.
+	 * @param type the target type
+	 */
 	public ClusterSerializableExternalizerProvider(Class<?> type) {
 		try {
 			this.constructor = type.getConstructor();

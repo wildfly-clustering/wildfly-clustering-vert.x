@@ -14,7 +14,7 @@
 
 	<artifactId>wildfly-clustering-vertx-web-arquillian</artifactId>
 
-	<name>WildFly Clustering: Vert.x Web: Arquillian support</name>
+	<name>${project.vertx.web}: Arquillian</name>
 
 	<dependencies>
 		<dependency>

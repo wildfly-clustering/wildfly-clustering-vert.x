@@ -13,15 +13,21 @@ import io.vertx.ext.web.handler.SessionHandler;
 import org.wildfly.clustering.function.Supplier;
 
 /**
+ * A factory for creating Vert.x session identifiers.
  * @author Paul Ferraro
  */
 public class VertxSessionIdentifierFactory implements Supplier<String> {
+	/** The name of the property used to configure the session identifier length */
 	public static final String SESSION_ID_LENGTH = "sessionIdentifierLength";
 
 	private final VertxContextPRNG random;
 	private int bytes;
 	private final HexFormat hex = HexFormat.of().withLowerCase();
 
+	/**
+	 * Creates a session identifier factory.
+	 * @param context the associated vert.x context
+	 */
 	public VertxSessionIdentifierFactory(Context context) {
 		this.random = VertxContextPRNG.current(context);
 		// N.B. The logic here replicates the behavior of io.vertx.ext.web.sstore.AbstractSession

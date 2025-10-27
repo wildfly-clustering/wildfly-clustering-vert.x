@@ -22,10 +22,13 @@ import org.wildfly.clustering.marshalling.protostream.ProtoStreamWriter;
 import org.wildfly.clustering.marshalling.protostream.util.StringKeyMapEntry;
 
 /**
+ * ProtoStream marshaller for a User.
  * @author Paul Ferraro
- *
  */
-public class UserMarshaller implements ProtoStreamMarshaller<User> {
+public enum UserMarshaller implements ProtoStreamMarshaller<User> {
+	/** Singleton instance */
+	INSTANCE;
+
 	private static final int PRINCIPAL_INDEX = 1;
 	private static final int AUTHORIZATION_ENTRY_INDEX = 2;
 	private static final int ATTRIBUTES_INDEX = 3;

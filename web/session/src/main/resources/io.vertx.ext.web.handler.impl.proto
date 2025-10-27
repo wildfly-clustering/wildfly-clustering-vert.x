@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package org.wildfly.clustering.vertx.web.handler;
+package io.vertx.ext.web.handler.impl;
 
 import "org.wildfly.clustering.marshalling.protostream.proto";
 

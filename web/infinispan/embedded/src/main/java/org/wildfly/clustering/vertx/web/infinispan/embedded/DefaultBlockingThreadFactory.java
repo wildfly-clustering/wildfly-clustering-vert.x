@@ -7,12 +7,15 @@ package org.wildfly.clustering.vertx.web.infinispan.embedded;
 import org.wildfly.clustering.context.DefaultThreadFactory;
 
 /**
- * Thread factory for blocking threads.
+ * Thread factory decorator that creates blocking threads.
  * @author Paul Ferraro
  */
 public class DefaultBlockingThreadFactory extends DefaultThreadFactory {
-
-	public DefaultBlockingThreadFactory(Class<?> targetClass) {
-		super(targetClass, targetClass.getClassLoader());
+	/**
+	 * Creates a blocking thread factory using the class loader of the specified class.
+	 * @param contextClass the class whose loader should be associated with new threads.
+	 */
+	public DefaultBlockingThreadFactory(Class<?> contextClass) {
+		super(contextClass, contextClass.getClassLoader());
 	}
 }

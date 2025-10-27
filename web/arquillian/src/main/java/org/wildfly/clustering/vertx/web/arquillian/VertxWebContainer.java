@@ -49,6 +49,12 @@ public class VertxWebContainer implements DeployableContainer<VertxWebContainerC
 	private volatile Router router;
 	private final Map<String, Map.Entry<String, Route>> deployments = new ConcurrentHashMap<>();
 
+	/**
+	 * Creates a new Vert.x Web container.
+	 */
+	public VertxWebContainer() {
+	}
+
 	@Override
 	public Class<VertxWebContainerConfiguration> getConfigurationClass() {
 		return VertxWebContainerConfiguration.class;

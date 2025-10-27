@@ -17,10 +17,12 @@ import org.wildfly.clustering.marshalling.protostream.ProtoStreamWriter;
 import org.wildfly.clustering.marshalling.protostream.util.StringKeyMapEntry;
 
 /**
- * A marshaller for a JsonObject, optimized for string keys.
+ * A ProtoStream marshaller for a JsonObject, optimized for string keys.
  * @author Paul Ferraro
  */
-public class JsonObjectMarshaller implements ProtoStreamMarshaller<JsonObject> {
+public enum JsonObjectMarshaller implements ProtoStreamMarshaller<JsonObject> {
+	/** Singleton instance */
+	INSTANCE;
 	private static final int ENTRY_INDEX = 1;
 
 	@Override

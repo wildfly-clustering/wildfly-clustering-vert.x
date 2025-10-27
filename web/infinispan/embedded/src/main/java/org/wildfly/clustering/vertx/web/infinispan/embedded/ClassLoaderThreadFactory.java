@@ -9,15 +9,21 @@ import org.wildfly.clustering.context.Contextualizer;
 import org.wildfly.clustering.context.ThreadContextClassLoaderReference;
 
 /**
+ * A thread factory decorator that associates threads with a specific class loader context.
  * @author Paul Ferraro
  */
 public class ClassLoaderThreadFactory implements org.jgroups.util.ThreadFactory {
 	private final ThreadFactory factory;
 	private final Contextualizer contextualizer;
 
-	public ClassLoaderThreadFactory(ThreadFactory factory, ClassLoader targetLoader) {
+	/**
+	 * Creates a thread factory decorator using the specified context class loader
+	 * @param factory the decorated thread factory
+	 * @param contextLoader the class loader to associate created threads.
+	 */
+	public ClassLoaderThreadFactory(ThreadFactory factory, ClassLoader contextLoader) {
 		this.factory = factory;
-		this.contextualizer = Contextualizer.withContextProvider(ThreadContextClassLoaderReference.CURRENT.provide(targetLoader));
+		this.contextualizer = Contextualizer.withContextProvider(ThreadContextClassLoaderReference.CURRENT.provide(contextLoader));
 	}
 
 	@Override

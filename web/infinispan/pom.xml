@@ -15,7 +15,11 @@
 	<artifactId>wildfly-clustering-vertx-web-infinispan</artifactId>
 	<packaging>pom</packaging>
 
-	<name>WildFly Clustering: Vert.x Web: Infinispan: Modules</name>
+	<properties>
+		<project.vertx.web.infinispan>${project.vertx.web}: Infinispan</project.vertx.web.infinispan>
+	</properties>
+
+	<name>${project.vertx.web.infinispan}: Modules</name>
 
 	<modules>
 		<module>embedded</module>

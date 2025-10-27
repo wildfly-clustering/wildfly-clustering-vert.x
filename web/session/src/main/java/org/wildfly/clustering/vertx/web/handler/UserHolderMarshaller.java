@@ -35,9 +35,13 @@ import org.wildfly.clustering.marshalling.protostream.ProtoStreamReader;
 import org.wildfly.clustering.marshalling.protostream.ProtoStreamWriter;
 
 /**
+ * ProtoStream marshaller of a {@link UserHolder}.
  * @author Paul Ferraro
  */
-public class UserHolderMarshaller implements ProtoStreamMarshaller<UserHolder> {
+public enum UserHolderMarshaller implements ProtoStreamMarshaller<UserHolder> {
+	/** Singleton instance */
+	INSTANCE;
+
 	private static final int USER_INDEX = 1;
 
 	// Yuck - user/context fields are not accessible!!!
