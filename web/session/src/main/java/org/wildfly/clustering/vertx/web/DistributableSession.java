@@ -29,6 +29,13 @@ public class DistributableSession implements VertxSession {
 	private volatile String originalId;
 	private volatile Session<Void> session;
 
+	/**
+	 * Creates a distributable Vert.x session backed by the specified session.
+	 * @param manager the manager of the specified session
+	 * @param session the decorated session
+	 * @param batch the batch associated with the specified session
+	 * @param closeTask a task to invoke on {@link VertxSession#close()}.
+	 */
 	public DistributableSession(SessionManager<Void> manager, Session<Void> session, SuspendedBatch batch, Runnable closeTask) {
 		this.manager = manager;
 		this.session = session;

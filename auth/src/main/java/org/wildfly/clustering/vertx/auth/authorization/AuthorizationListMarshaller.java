@@ -18,8 +18,9 @@ import org.wildfly.clustering.marshalling.protostream.ProtoStreamReader;
 import org.wildfly.clustering.marshalling.protostream.ProtoStreamWriter;
 
 /**
+ * A ProtoStream marshaller for a composite {@link Authorization}.
  * @author Paul Ferraro
- *
+ * @param <A> the authorization type
  */
 public class AuthorizationListMarshaller<A extends Authorization> implements ProtoStreamMarshaller<A> {
 	private static final int AUTHORIZATION_INDEX = 1;
@@ -28,6 +29,12 @@ public class AuthorizationListMarshaller<A extends Authorization> implements Pro
 	private final BiConsumer<A, Authorization> appender;
 	private final Function<A, List<Authorization>> authorizations;
 
+	/**
+	 * Creates a marshaller.
+	 * @param factory the authorization factory.
+	 * @param appender an authorization list appender.
+	 * @param authorizations the composed authorizations.
+	 */
 	public AuthorizationListMarshaller(Supplier<A> factory, BiConsumer<A, Authorization> appender, Function<A, List<Authorization>> authorizations) {
 		this.factory = factory;
 		this.appender = appender;

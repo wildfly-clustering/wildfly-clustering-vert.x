@@ -16,7 +16,9 @@ import org.wildfly.clustering.marshalling.protostream.ProtoStreamReader;
 import org.wildfly.clustering.marshalling.protostream.ProtoStreamWriter;
 
 /**
+ * A ProtoStream marshaller for an {@link Authorization} wrapper.
  * @author Paul Ferraro
+ * @param <A> the authorization type
  */
 public class AuthorizationWrapperMarshaller<A extends Authorization> implements ProtoStreamMarshaller<A> {
 	private static final int AUTHORIZATION_INDEX = 1;
@@ -24,6 +26,11 @@ public class AuthorizationWrapperMarshaller<A extends Authorization> implements 
 	private final Function<Authorization, A> wrapper;
 	private final Function<A, Authorization> unwrapper;
 
+	/**
+	 * Creates a marshaller.
+	 * @param wrapper the authorization wrapper.
+	 * @param unwrapper an authorization wrapper.
+	 */
 	public AuthorizationWrapperMarshaller(Function<Authorization, A> wrapper, Function<A, Authorization> unwrapper) {
 		this.wrapper = wrapper;
 		this.unwrapper = unwrapper;

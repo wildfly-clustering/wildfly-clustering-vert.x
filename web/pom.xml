@@ -15,7 +15,11 @@
 	<artifactId>wildfly-clustering-vertx-web</artifactId>
 	<packaging>pom</packaging>
 
-	<name>WildFly Clustering: Vert.x Web: Modules</name>
+	<properties>
+		<project.vertx.web>${project.repository.name} Web</project.vertx.web>
+	</properties>
+
+	<name>${project.vertx.web}: Modules</name>
 
 	<modules>
 		<module>arquillian</module>

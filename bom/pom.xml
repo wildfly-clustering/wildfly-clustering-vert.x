@@ -7,9 +7,9 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<groupId>org.jboss</groupId>
-		<artifactId>jboss-parent</artifactId>
-		<version>50</version>
+		<groupId>org.wildfly.clustering</groupId>
+		<artifactId>wildfly-clustering-parent</artifactId>
+		<version>8.0.3.Final</version>
 		<relativePath />
 	</parent>
 
@@ -18,26 +18,14 @@
 	<version>3.0.0.Final-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
-	<name>WildFly Clustering: Vert.x: BOM</name>
-	<description>${project.name}</description>
-	<url>https://github.com/wildfly-clustering/wildfly-clustering-vert.x</url>
+	<name>${project.repository.name}: BOM</name>
 
 	<properties>
-		<!-- Nexus deployment settings -->
-		<nexus.staging.tag>${project.groupId}-${project.version}</nexus.staging.tag>
+		<project.repository.id>wildfly-clustering-vertx</project.repository.id>
+		<project.repository.name>${project.repository.organization.name}: Vert.x</project.repository.name>
 	</properties>
 
-	<licenses>
-		<license>
-			<name>Apache License, Version 2.0</name>
-			<url>https://www.apache.org/licenses/LICENSE-2.0</url>
-		</license>
-	</licenses>
-
 	<scm>
-		<connection>scm:git:git://github.com:wildfly-clustering/wildfly-clustering-vert.x.git</connection>
-		<developerConnection>scm:git:git@github.com:wildfly-clustering/wildfly-clustering-vert.x.git</developerConnection>
-		<url>https://github.com/wildfly-clustering/wildfly-clustering-vert.x</url>
 		<tag>HEAD</tag>
 	</scm>
 

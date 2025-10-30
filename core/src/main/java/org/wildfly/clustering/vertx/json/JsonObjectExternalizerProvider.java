@@ -17,6 +17,9 @@ import org.wildfly.clustering.marshalling.jboss.ExternalizerProvider;
 public class JsonObjectExternalizerProvider extends ClusterSerializableExternalizerProvider {
 	private static final long serialVersionUID = 5631247217115998338L;
 
+	/**
+	 * Creates an externalizer provider.
+	 */
 	public JsonObjectExternalizerProvider() {
 		super(JsonObject.class);
 	}

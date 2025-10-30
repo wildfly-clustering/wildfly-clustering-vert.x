@@ -13,7 +13,7 @@
 
 	<artifactId>wildfly-clustering-vertx-auth</artifactId>
 
-	<name>WildFly Clustering: Vert.x: Auth extension support</name>
+	<name>${project.repository.name}: Auth extension</name>
 
 	<dependencies>
 		<dependency>

@@ -27,6 +27,10 @@ public class RouterVerticle extends AbstractVerticle {
 	private volatile Context context;
 	private volatile Future<SessionStore> store;
 
+	/**
+	 * Creates a new router verticle using the specified router.
+	 * @param router a request router.
+	 */
 	public RouterVerticle(Router router) {
 		this.router = router;
 	}

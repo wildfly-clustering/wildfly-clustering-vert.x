@@ -31,6 +31,10 @@ public class NonBlockingExecutorFactory implements ExecutorFactory {
 
 	private final ClassLoader loader;
 
+	/**
+	 * Creates an executor factory that associates threads with specified class loader context.
+	 * @param loader the class loader with which new threads should be associated.
+	 */
 	public NonBlockingExecutorFactory(ClassLoader loader) {
 		this.loader = loader;
 	}

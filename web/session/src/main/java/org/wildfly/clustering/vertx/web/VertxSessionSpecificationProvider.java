@@ -11,7 +11,12 @@ import org.wildfly.clustering.session.ImmutableSession;
 import org.wildfly.clustering.session.spec.SessionEventListenerSpecificationProvider;
 import org.wildfly.clustering.session.spec.SessionSpecificationProvider;
 
+/**
+ * Provides a specification provider for Vert.x Web
+ * @author Paul Ferraro
+ */
 public enum VertxSessionSpecificationProvider implements SessionSpecificationProvider<ImmutableSession, Context>, SessionEventListenerSpecificationProvider<ImmutableSession, Void> {
+	/** Singleton instance */
 	INSTANCE;
 
 	@Override

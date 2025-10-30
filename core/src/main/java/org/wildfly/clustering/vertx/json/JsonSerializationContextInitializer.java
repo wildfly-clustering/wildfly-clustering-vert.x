@@ -17,18 +17,21 @@ import org.wildfly.clustering.marshalling.protostream.SerializationContext;
 import org.wildfly.clustering.marshalling.protostream.SerializationContextInitializer;
 
 /**
+ * The serialization context initializer for {@link io.vertx.core.json} package.
  * @author Paul Ferraro
  */
 @MetaInfServices(SerializationContextInitializer.class)
 public class JsonSerializationContextInitializer extends AbstractSerializationContextInitializer {
-
+	/**
+	 * Create a serialization context initializer.
+	 */
 	public JsonSerializationContextInitializer() {
 		super(JsonObject.class.getPackage());
 	}
 
 	@Override
 	public void registerMarshallers(SerializationContext context) {
-		context.registerMarshaller(new JsonObjectMarshaller());
+		context.registerMarshaller(JsonObjectMarshaller.INSTANCE);
 		@SuppressWarnings("unchecked")
 		ProtoStreamMarshaller<List<Object>> listMarshaller = (ProtoStreamMarshaller<List<Object>>) (ProtoStreamMarshaller<?>) context.getMarshaller(ArrayList.class);
 		context.registerMarshaller(listMarshaller.wrap(JsonArray.class, JsonArray::getList, JsonArray::new));

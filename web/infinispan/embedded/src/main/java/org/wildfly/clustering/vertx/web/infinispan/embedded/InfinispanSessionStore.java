@@ -7,6 +7,7 @@ package org.wildfly.clustering.vertx.web.infinispan.embedded;
 import java.io.File;
 import java.lang.management.ManagementFactory;
 import java.net.URL;
+import java.time.Duration;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -54,6 +55,7 @@ import org.jgroups.Message;
 import org.jgroups.jmx.JmxConfigurator;
 import org.jgroups.util.Util;
 import org.kohsuke.MetaInfServices;
+import org.wildfly.clustering.cache.infinispan.embedded.EmbeddedCacheConfiguration;
 import org.wildfly.clustering.cache.infinispan.embedded.container.DataContainerConfigurationBuilder;
 import org.wildfly.clustering.cache.infinispan.marshalling.MediaTypes;
 import org.wildfly.clustering.cache.infinispan.marshalling.UserMarshaller;
@@ -69,12 +71,13 @@ import org.wildfly.clustering.server.infinispan.dispatcher.LocalEmbeddedCacheMan
 import org.wildfly.clustering.server.jgroups.ChannelGroupMember;
 import org.wildfly.clustering.server.jgroups.dispatcher.ChannelCommandDispatcherFactory;
 import org.wildfly.clustering.server.jgroups.dispatcher.JChannelCommandDispatcherFactory;
-import org.wildfly.clustering.server.jgroups.dispatcher.JChannelCommandDispatcherFactoryConfiguration;
+import org.wildfly.clustering.session.ImmutableSession;
 import org.wildfly.clustering.session.SessionManagerFactory;
 import org.wildfly.clustering.session.SessionManagerFactoryConfiguration;
 import org.wildfly.clustering.session.infinispan.embedded.InfinispanSessionManagerFactory;
-import org.wildfly.clustering.session.infinispan.embedded.InfinispanSessionManagerFactoryConfiguration;
 import org.wildfly.clustering.session.infinispan.embedded.metadata.SessionMetaDataKey;
+import org.wildfly.clustering.session.spec.SessionEventListenerSpecificationProvider;
+import org.wildfly.clustering.session.spec.SessionSpecificationProvider;
 import org.wildfly.clustering.vertx.web.DistributableSessionManagerFactoryConfiguration;
 import org.wildfly.clustering.vertx.web.DistributableSessionStore;
 import org.wildfly.clustering.vertx.web.VertxSessionSpecificationProvider;
@@ -84,13 +87,18 @@ import org.wildfly.clustering.vertx.web.VertxSessionSpecificationProvider;
  */
 @MetaInfServices(SessionStore.class)
 public class InfinispanSessionStore extends DistributableSessionStore {
+	/** The name of the property specifying the location of the Infinispan configuration resource. */
 	public static final String RESOURCE = "resource";
+	/** The name of the property specifying the name of a cache configuration. */
 	public static final String CACHE = "cache";
 
 	static final Logger LOGGER = Logger.getLogger(InfinispanSessionStore.class);
 	static final String DEFAULT_RESOURCE = "infinispan.xml";
 	private static final AtomicInteger COUNTER = new AtomicInteger(0);
 
+	/**
+	 * Creates a session store.
+	 */
 	public InfinispanSessionStore() {
 		this(new LinkedList<>());
 	}
@@ -166,7 +174,7 @@ public class InfinispanSessionStore extends DistributableSessionStore {
 						global.transport().withProperties(properties);
 					}
 
-					ChannelCommandDispatcherFactory channelCommandDispatcherFactory = (channel != null) ? new JChannelCommandDispatcherFactory(new JChannelCommandDispatcherFactoryConfiguration() {
+					ChannelCommandDispatcherFactory channelCommandDispatcherFactory = (channel != null) ? new JChannelCommandDispatcherFactory(new JChannelCommandDispatcherFactory.Configuration() {
 						@Override
 						public JChannel getChannel() {
 							return channel;
@@ -242,7 +250,8 @@ public class InfinispanSessionStore extends DistributableSessionStore {
 					// Disable expiration
 					builder.expiration().lifespan(-1).maxIdle(-1).disableReaper().wakeUpInterval(-1);
 
-					OptionalInt maxActiveSessions = configuration.getMaxActiveSessions();
+					OptionalInt maxActiveSessions = configuration.getMaxSize();
+					Optional<Duration> idleTimeout = configuration.getIdleTimeout();
 					EvictionStrategy eviction = maxActiveSessions.isPresent() ? EvictionStrategy.REMOVE : EvictionStrategy.MANUAL;
 					builder.memory().storage(StorageType.HEAP)
 							.whenFull(eviction)
@@ -251,7 +260,9 @@ public class InfinispanSessionStore extends DistributableSessionStore {
 					if (eviction.isEnabled()) {
 						// Only evict meta-data entries
 						// We will cascade eviction to the remaining entries for a given session
-						builder.addModule(DataContainerConfigurationBuilder.class).evictable(SessionMetaDataKey.class::isInstance);
+						DataContainerConfigurationBuilder containerBuilder = builder.addModule(DataContainerConfigurationBuilder.class);
+						containerBuilder.evictable(SessionMetaDataKey.class::isInstance);
+						idleTimeout.ifPresent(containerBuilder::idleTimeout);
 					}
 
 					container.defineConfiguration(deploymentName, builder.build());
@@ -278,16 +289,41 @@ public class InfinispanSessionStore extends DistributableSessionStore {
 					cache.start();
 					closeTasks.add(0, cache::stop);
 
-					return new InfinispanSessionManagerFactory<>(configuration, VertxSessionSpecificationProvider.INSTANCE, VertxSessionSpecificationProvider.INSTANCE, new InfinispanSessionManagerFactoryConfiguration() {
-						@SuppressWarnings("unchecked")
+					return new InfinispanSessionManagerFactory<>(new InfinispanSessionManagerFactory.Configuration<ImmutableSession, Context, Void, Void>() {
 						@Override
-						public <K, V> Cache<K, V> getCache() {
-							return (Cache<K, V>) cache;
+						public SessionManagerFactoryConfiguration<Void> getSessionManagerFactoryConfiguration() {
+							return configuration;
+						}
+
+						@Override
+						public SessionSpecificationProvider<ImmutableSession, Context> getSessionSpecificationProvider() {
+							return VertxSessionSpecificationProvider.INSTANCE;
+						}
+
+						@Override
+						public SessionEventListenerSpecificationProvider<ImmutableSession, Void> getSessionEventListenerSpecificationProvider() {
+							return VertxSessionSpecificationProvider.INSTANCE;
 						}
 
 						@Override
 						public CacheContainerCommandDispatcherFactory getCommandDispatcherFactory() {
 							return commandDispatcherFactory;
+						}
+
+						@Override
+						public EmbeddedCacheConfiguration getCacheConfiguration() {
+							return new EmbeddedCacheConfiguration() {
+								@SuppressWarnings("unchecked")
+								@Override
+								public <K, V> Cache<K, V> getCache() {
+									return (Cache<K, V>) cache;
+								}
+
+								@Override
+								public boolean isFaultTolerant() {
+									return true;
+								}
+							};
 						}
 					});
 				} catch (Exception e) {

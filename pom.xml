@@ -16,33 +16,7 @@
 	<artifactId>wildfly-clustering-vertx</artifactId>
 	<packaging>pom</packaging>
 
-	<name>WildFly Clustering: Vert.x: Modules</name>
-
-	<properties>
-		<jdk.runtime.args>-Dorg.jboss.logging.provider=jdk --add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.rmi/sun.rmi.transport=ALL-UNNAMED</jdk.runtime.args>
-		<jacoco.skip>true</jacoco.skip>
-		<maven.compiler.release>17</maven.compiler.release>
-
-		<!-- Provided dependency versions -->
-		<version.jakarta.transaction>2.0.1</version.jakarta.transaction>
-		<version.net.jcip>1.0</version.net.jcip>
-
-		<!-- Compile dependency versions -->
-		<version.io.vertx>4.5.22</version.io.vertx>
-		<version.org.kohsuke.metainf-services>1.11</version.org.kohsuke.metainf-services>
-		<version.org.wildfly.clustering>7.0.13.Final</version.org.wildfly.clustering>
-
-		<!-- Test dependency versions -->
-		<version.org.assertj>3.27.6</version.org.assertj>
-		<version.org.jacoco>0.8.12</version.org.jacoco>
-		<version.org.jboss.arquillian>1.10.0.Final</version.org.jboss.arquillian>
-		<version.org.jboss.logmanager>3.1.2.Final</version.org.jboss.logmanager>
-		<version.org.jboss.shrinkwrap>1.2.6</version.org.jboss.shrinkwrap>
-		<version.org.junit>5.13.4</version.org.junit>
-		<version.org.mockito>5.20.0</version.org.mockito>
-		<version.org.slf4j>2.0.17</version.org.slf4j>
-		<version.org.testcontainers>1.21.3</version.org.testcontainers>
-	</properties>
+	<name>${project.repository.name}: Modules</name>
 
 	<modules>
 		<module>bom</module>
@@ -57,80 +31,79 @@
 			<dependency>
 				<groupId>io.vertx</groupId>
 				<artifactId>vertx-stack</artifactId>
-				<version>${version.io.vertx}</version>
+				<version>4.5.22</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
 			<dependency>
 				<groupId>org.assertj</groupId>
 				<artifactId>assertj-bom</artifactId>
-				<version>${version.org.assertj}</version>
+				<version>3.27.6</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
 			<dependency>
 				<groupId>org.jboss.arquillian</groupId>
 				<artifactId>arquillian-bom</artifactId>
-				<version>${version.org.jboss.arquillian}</version>
+				<version>1.10.0.Final</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
 			<dependency>
 				<groupId>org.jboss.shrinkwrap</groupId>
 				<artifactId>shrinkwrap-bom</artifactId>
-				<version>${version.org.jboss.shrinkwrap}</version>
+				<version>1.2.6</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
 			<dependency>
 				<groupId>org.junit</groupId>
 				<artifactId>junit-bom</artifactId>
-				<version>${version.org.junit}</version>
+				<version>5.13.4</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
 			<dependency>
 				<groupId>org.mockito</groupId>
 				<artifactId>mockito-bom</artifactId>
-				<version>${version.org.mockito}</version>
+				<version>5.20.0</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
 			<dependency>
 				<groupId>org.slf4j</groupId>
 				<artifactId>slf4j-bom</artifactId>
-				<version>${version.org.slf4j}</version>
+				<version>2.0.17</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
 			<dependency>
 				<groupId>org.testcontainers</groupId>
 				<artifactId>testcontainers-bom</artifactId>
-				<version>${version.org.testcontainers}</version>
+				<version>1.21.3</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
 			<dependency>
 				<groupId>org.wildfly.clustering</groupId>
 				<artifactId>wildfly-clustering-bom</artifactId>
-				<version>${version.org.wildfly.clustering}</version>
+				<version>8.0.2.Final</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
 
-			<!-- Compile dependencies -->
+			<!-- BOM-less dependencies -->
 			<dependency>
 				<groupId>org.kohsuke.metainf-services</groupId>
 				<artifactId>metainf-services</artifactId>
-				<version>${version.org.kohsuke.metainf-services}</version>
+				<version>1.11</version>
 			</dependency>
-
-			<!-- Test dependencies -->
 			<dependency>
 				<groupId>org.jboss.logmanager</groupId>
 				<artifactId>jboss-logmanager</artifactId>
-				<version>${version.org.jboss.logmanager}</version>
+				<version>3.1.2.Final</version>
 				<exclusions>
+					<!-- Infinispan requires a newer version -->
 					<exclusion>
 						<groupId>org.jboss.logging</groupId>
 						<artifactId>jboss-logging</artifactId>
@@ -172,34 +145,6 @@
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-checkstyle-plugin</artifactId>
-				<configuration>
-					<configLocation>checkstyle.xml</configLocation>
-					<logViolationsToConsole>true</logViolationsToConsole>
-					<sourceDirectories>
-						<sourceDirectory>${project.build.sourceDirectory}</sourceDirectory>
-						<sourceDirectory>${project.build.testSourceDirectory}</sourceDirectory>
-					</sourceDirectories>
-				</configuration>
-				<executions>
-					<execution>
-						<id>check-sources</id>
-						<phase>process-sources</phase>
-						<goals>
-							<goal>check</goal>
-						</goals>
-					</execution>
-					<execution>
-						<id>check-test-sources</id>
-						<phase>process-test-sources</phase>
-						<goals>
-							<goal>check</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
 					<annotationProcessorPaths>
@@ -209,109 +154,12 @@
 						</annotationProcessorPath>
 					</annotationProcessorPaths>
 				</configuration>
-				<executions>
-					<execution>
-						<id>default-testCompile</id>
-						<phase>test-compile</phase>
-						<goals>
-							<goal>testCompile</goal>
-						</goals>
-						<configuration>
-							<parameters>true</parameters>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-dependency-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>copy-java-agent</id>
-						<phase>process-test-classes</phase>
-						<goals>
-							<goal>copy-dependencies</goal>
-						</goals>
-						<configuration>
-							<includeGroupIds>org.mockito</includeGroupIds>
-							<includeArtifactIds>mockito-core</includeArtifactIds>
-							<stripVersion>true</stripVersion>
-							<outputDirectory>${project.build.directory}/agent</outputDirectory>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-failsafe-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>integration-test</id>
-						<phase>integration-test</phase>
-						<goals>
-							<goal>integration-test</goal>
-							<goal>verify</goal>
-						</goals>
-						<configuration>
-							<trimStackTrace>false</trimStackTrace>
-							<argLine>${jdk.runtime.args}</argLine>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-jar-plugin</artifactId>
-				<executions>
-					<execution>
-						<goals>
-							<goal>test-jar</goal>
-						</goals>
-						<configuration>
-							<skipIfEmpty>true</skipIfEmpty>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-javadoc-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>package-javadoc</id>
-						<phase>package</phase>
-						<goals>
-							<goal>jar</goal>
-							<goal>test-jar</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-resources-plugin</artifactId>
-				<configuration>
-					<overwrite>true</overwrite>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-source-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>package-source</id>
-						<phase>package</phase>
-						<goals>
-							<goal>test-jar-no-fork</goal>
-						</goals>
-					</execution>
-				</executions>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<configuration>
-					<argLine>${jdk.runtime.args} -javaagent:${project.build.directory}/agent/mockito-core.jar</argLine>
+					<argLine>@{argLine} -javaagent:${org.mockito:mockito-core:jar}</argLine>
 				</configuration>
 			</plugin>
 		</plugins>
@@ -319,21 +167,7 @@
 
 	<profiles>
 		<profile>
-			<id>quickly</id>
-			<properties>
-				<checkstyle.skip>true</checkstyle.skip>
-				<maven.javadoc.skip>true</maven.javadoc.skip>
-				<skipTests>true</skipTests>
-				<skipITs>true</skipITs>
-			</properties>
-		</profile>
-		<profile>
-			<id>jboss-release</id>
-			<properties>
-				<checkstyle.skip>true</checkstyle.skip>
-				<skipTests>true</skipTests>
-				<skipITs>true</skipITs>
-			</properties>
+			<id>release</id>
 			<build>
 				<plugins>
 					<plugin>
@@ -346,6 +180,10 @@
 								<goals>
 									<goal>aggregate-jar</goal>
 								</goals>
+								<configuration>
+									<doclint>none</doclint>
+									<failOnWarnings>false</failOnWarnings>
+								</configuration>
 							</execution>
 						</executions>
 					</plugin>

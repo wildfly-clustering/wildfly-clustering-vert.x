@@ -20,11 +20,14 @@ import org.wildfly.clustering.marshalling.protostream.SerializationContext;
 import org.wildfly.clustering.marshalling.protostream.SerializationContextInitializer;
 
 /**
+ * The serialization context initializer for the {@link io.vertx.ext.auth.authorization} package.
  * @author Paul Ferraro
  */
 @MetaInfServices(SerializationContextInitializer.class)
 public class AuthorizationSerializationContextInitializer extends AbstractSerializationContextInitializer {
-
+	/**
+	 * Creates a serialization context initializer.
+	 */
 	public AuthorizationSerializationContextInitializer() {
 		super(AuthorizationsImpl.class.getPackage());
 	}

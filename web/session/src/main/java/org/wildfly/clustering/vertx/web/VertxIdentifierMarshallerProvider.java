@@ -12,10 +12,16 @@ import org.wildfly.clustering.session.IdentifierMarshaller;
 import org.wildfly.clustering.session.IdentifierMarshallerProvider;
 
 /**
+ * Provides the marshaller for Vert.x session identifiers.
  * @author Paul Ferraro
  */
 @MetaInfServices(IdentifierMarshallerProvider.class)
 public class VertxIdentifierMarshallerProvider implements IdentifierMarshallerProvider {
+	/**
+	 * Creates a provider of the session identifier marshaller.
+	 */
+	public VertxIdentifierMarshallerProvider() {
+	}
 
 	@Override
 	public Marshaller<String, ByteBuffer> getMarshaller() {
