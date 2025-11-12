@@ -22,7 +22,7 @@ import org.wildfly.clustering.vertx.web.SessionPersistenceGranularity;
 public class HotRodSessionManagementArgumentsProvider implements ArgumentsProvider {
 
 	@Override
-	public Stream<? extends Arguments> provideArguments(ExtensionContext context) throws Exception {
+	public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
 		Stream.Builder<Arguments> builder = Stream.builder();
 		for (SessionPersistenceGranularity strategy : EnumSet.allOf(SessionPersistenceGranularity.class)) {
 			for (SessionAttributeMarshaller marshaller : EnumSet.allOf(SessionAttributeMarshaller.class)) {
