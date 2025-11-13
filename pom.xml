@@ -9,7 +9,7 @@
 	<parent>
 		<groupId>org.wildfly.clustering.vertx</groupId>
 		<artifactId>wildfly-clustering-vertx-bom</artifactId>
-		<version>3.0.0.Final</version>
+		<version>4.0.0.Final-SNAPSHOT</version>
 		<relativePath>bom</relativePath>
 	</parent>
 
