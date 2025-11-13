@@ -21,7 +21,7 @@
 	<name>${project.repository.name}: BOM</name>
 
 	<properties>
-		<project.repository.id>wildfly-clustering-vertx</project.repository.id>
+		<project.repository.id>wildfly-clustering-vert.x</project.repository.id>
 		<project.repository.name>${project.repository.organization.name}: Vert.x</project.repository.name>
 	</properties>
 
