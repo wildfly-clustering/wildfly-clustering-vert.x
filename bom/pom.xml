@@ -15,7 +15,7 @@
 
 	<groupId>org.wildfly.clustering.vertx</groupId>
 	<artifactId>wildfly-clustering-vertx-bom</artifactId>
-	<version>3.5.0.Final-SNAPSHOT</version>
+	<version>3.5.0.Final</version>
 	<packaging>pom</packaging>
 
 	<name>${project.repository.name}: BOM</name>
@@ -26,7 +26,7 @@
 	</properties>
 
 	<scm>
-		<tag>3.0.0.Final</tag>
+		<tag>3.5.0.Final</tag>
 	</scm>
 
 	<dependencyManagement>
