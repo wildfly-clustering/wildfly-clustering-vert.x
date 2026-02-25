@@ -13,5 +13,10 @@ import io.vertx.ext.web.Session;
 public interface VertxSession extends Session, AutoCloseable {
 
 	@Override
+	default void setAccessed() {
+		this.close();
+	}
+
+	@Override
 	void close();
 }

@@ -14,9 +14,6 @@ import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.function.Predicate;
 
 import javax.management.ObjectName;
 
@@ -59,6 +56,10 @@ import org.wildfly.clustering.cache.infinispan.embedded.EmbeddedCacheConfigurati
 import org.wildfly.clustering.cache.infinispan.embedded.container.DataContainerConfigurationBuilder;
 import org.wildfly.clustering.cache.infinispan.marshalling.MediaTypes;
 import org.wildfly.clustering.cache.infinispan.marshalling.UserMarshaller;
+import org.wildfly.clustering.function.BiFunction;
+import org.wildfly.clustering.function.Function;
+import org.wildfly.clustering.function.Predicate;
+import org.wildfly.clustering.function.Runner;
 import org.wildfly.clustering.marshalling.ByteBufferMarshaller;
 import org.wildfly.clustering.marshalling.protostream.ClassLoaderMarshaller;
 import org.wildfly.clustering.marshalling.protostream.ProtoStreamByteBufferMarshaller;
@@ -71,16 +72,12 @@ import org.wildfly.clustering.server.infinispan.dispatcher.LocalEmbeddedCacheMan
 import org.wildfly.clustering.server.jgroups.ChannelGroupMember;
 import org.wildfly.clustering.server.jgroups.dispatcher.ChannelCommandDispatcherFactory;
 import org.wildfly.clustering.server.jgroups.dispatcher.JChannelCommandDispatcherFactory;
-import org.wildfly.clustering.session.ImmutableSession;
 import org.wildfly.clustering.session.SessionManagerFactory;
 import org.wildfly.clustering.session.SessionManagerFactoryConfiguration;
 import org.wildfly.clustering.session.infinispan.embedded.InfinispanSessionManagerFactory;
 import org.wildfly.clustering.session.infinispan.embedded.metadata.SessionMetaDataKey;
-import org.wildfly.clustering.session.spec.SessionEventListenerSpecificationProvider;
-import org.wildfly.clustering.session.spec.SessionSpecificationProvider;
 import org.wildfly.clustering.vertx.web.DistributableSessionManagerFactoryConfiguration;
 import org.wildfly.clustering.vertx.web.DistributableSessionStore;
-import org.wildfly.clustering.vertx.web.VertxSessionSpecificationProvider;
 
 /**
  * An embedded Infinispan {@link SessionStore} for Vert.x.
@@ -139,10 +136,8 @@ public class InfinispanSessionStore extends DistributableSessionStore {
 					TransportConfiguration transport = Optional.of(global.transport().create()).filter(t -> t.nodeName() != null).orElseGet(() -> global.transport().nodeName(Util.generateLocalName()).create());
 
 					JGroupsChannelConfigurator configurator = (transport.transport() != null) ? new JChannelConfigurator(transport, loader) : null;
-					JChannel channel = (configurator != null) ? configurator.createChannel(null) : null;
+					JChannel channel = (configurator != null) ? configurator.createChannel(transport.nodeName()) : null;
 					if (channel != null) {
-						channel.setName(transport.nodeName());
-						channel.setDiscardOwnMessages(true);
 						LOGGER.debugf("Connecting %s to %s", transport.nodeName(), transport.clusterName());
 						channel.connect(transport.clusterName());
 						LOGGER.debugf("Connected %s to %s with view: %s", channel.getName(), channel.getClusterName(), channel.view().getMembers());
@@ -210,18 +205,6 @@ public class InfinispanSessionStore extends DistributableSessionStore {
 								// Register dummy serialization context initializer, to bypass service loading in org.infinispan.marshall.protostream.impl.SerializationContextRegistryImpl
 								// Otherwise marshaller auto-detection will not work
 								.addContextInitializer(new SerializationContextInitializer() {
-									@Deprecated
-									@Override
-									public String getProtoFile() {
-										return null;
-									}
-
-									@Deprecated
-									@Override
-									public String getProtoFileName() {
-										return null;
-									}
-
 									@Override
 									public void registerMarshallers(SerializationContext context) {
 									}
@@ -250,8 +233,8 @@ public class InfinispanSessionStore extends DistributableSessionStore {
 					// Disable expiration
 					builder.expiration().lifespan(-1).maxIdle(-1).disableReaper().wakeUpInterval(-1);
 
-					OptionalInt maxActiveSessions = configuration.getMaxSize();
-					Optional<Duration> idleTimeout = configuration.getIdleTimeout();
+					OptionalInt maxActiveSessions = configuration.getSizeThreshold();
+					Optional<Duration> idleTimeout = configuration.getIdleThreshold();
 					EvictionStrategy eviction = maxActiveSessions.isPresent() ? EvictionStrategy.REMOVE : EvictionStrategy.MANUAL;
 					builder.memory().storage(StorageType.HEAP)
 							.whenFull(eviction)
@@ -289,20 +272,10 @@ public class InfinispanSessionStore extends DistributableSessionStore {
 					cache.start();
 					closeTasks.add(0, cache::stop);
 
-					return new InfinispanSessionManagerFactory<>(new InfinispanSessionManagerFactory.Configuration<ImmutableSession, Context, Void, Void>() {
+					return new InfinispanSessionManagerFactory<>(new InfinispanSessionManagerFactory.Configuration<>() {
 						@Override
 						public SessionManagerFactoryConfiguration<Void> getSessionManagerFactoryConfiguration() {
 							return configuration;
-						}
-
-						@Override
-						public SessionSpecificationProvider<ImmutableSession, Context> getSessionSpecificationProvider() {
-							return VertxSessionSpecificationProvider.INSTANCE;
-						}
-
-						@Override
-						public SessionEventListenerSpecificationProvider<ImmutableSession, Void> getSessionEventListenerSpecificationProvider() {
-							return VertxSessionSpecificationProvider.INSTANCE;
 						}
 
 						@Override
@@ -330,6 +303,6 @@ public class InfinispanSessionStore extends DistributableSessionStore {
 					throw new IllegalStateException(e);
 				}
 			}
-		}, () -> closeTasks.forEach(Runnable::run));
+		}, Runner.runAll(closeTasks));
 	}
 }

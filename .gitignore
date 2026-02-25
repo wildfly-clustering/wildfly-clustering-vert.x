@@ -11,5 +11,6 @@ buildNumber.properties
 # Eclipse Core
 .project
 # JDT-specific (Eclipse Java Development Tools)
+.checkstyle
 .classpath
 .settings/

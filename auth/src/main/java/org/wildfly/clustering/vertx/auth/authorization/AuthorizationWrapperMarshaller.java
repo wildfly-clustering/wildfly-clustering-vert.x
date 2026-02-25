@@ -48,11 +48,8 @@ public class AuthorizationWrapperMarshaller<A extends Authorization> implements 
 		while (!reader.isAtEnd()) {
 			int tag = reader.readTag();
 			switch (WireType.getTagFieldNumber(tag)) {
-				case AUTHORIZATION_INDEX:
-					authorization = reader.readObject(Authorization.class);
-					break;
-				default:
-					reader.skipField(tag);
+				case AUTHORIZATION_INDEX -> authorization = reader.readObject(Authorization.class);
+				default -> reader.skipField(tag);
 			}
 		}
 		return this.wrapper.apply(authorization);

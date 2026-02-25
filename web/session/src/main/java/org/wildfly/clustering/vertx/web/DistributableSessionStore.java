@@ -6,9 +6,9 @@ package org.wildfly.clustering.vertx.web;
 
 import java.time.Duration;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.StampedLock;
-import java.util.function.BiFunction;
 
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
@@ -20,8 +20,9 @@ import org.jboss.logging.Logger;
 import org.wildfly.clustering.cache.batch.Batch;
 import org.wildfly.clustering.cache.batch.SuspendedBatch;
 import org.wildfly.clustering.context.Context;
-import org.wildfly.clustering.function.Callable;
+import org.wildfly.clustering.function.BiFunction;
 import org.wildfly.clustering.function.Consumer;
+import org.wildfly.clustering.function.Predicate;
 import org.wildfly.clustering.function.Supplier;
 import org.wildfly.clustering.session.ImmutableSession;
 import org.wildfly.clustering.session.Session;
@@ -70,8 +71,8 @@ public class DistributableSessionStore implements SessionStore {
 			}
 
 			@Override
-			public Duration getTimeout() {
-				return Duration.ofMillis(SessionHandler.DEFAULT_SESSION_TIMEOUT);
+			public Optional<Duration> getMaxIdle() {
+				return Optional.of(Duration.ofMillis(SessionHandler.DEFAULT_SESSION_TIMEOUT)).filter(Predicate.not(Duration::isZero).and(Predicate.not(Duration::isNegative)));
 			}
 
 			@Override
@@ -96,7 +97,7 @@ public class DistributableSessionStore implements SessionStore {
 		Runnable closeTask = entry.getValue();
 		try (Context<Batch> context = suspendedBatch.resumeWithContext()) {
 			Session<Void> session = this.manager.createSession(id);
-			session.getMetaData().setTimeout(Duration.ofMillis(timeout));
+			session.getMetaData().setMaxIdle(Duration.ofMillis(timeout));
 			return new DistributableSession(this.manager, session, suspendedBatch, closeTask);
 		} catch (RuntimeException | Error e) {
 			rollback(entry);
@@ -161,10 +162,6 @@ public class DistributableSessionStore implements SessionStore {
 
 	@Override
 	public Future<Void> put(io.vertx.ext.web.Session session) {
-		if (session instanceof VertxSession) {
-			VertxSession vertxSession = (VertxSession) session;
-			return this.context.executeBlocking(Callable.run(vertxSession::close));
-		}
 		return Future.succeededFuture();
 	}
 

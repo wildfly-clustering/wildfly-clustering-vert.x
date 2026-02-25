@@ -36,12 +36,11 @@ public enum JsonObjectMarshaller implements ProtoStreamMarshaller<JsonObject> {
 		while (!reader.isAtEnd()) {
 			int tag = reader.readTag();
 			switch (WireType.getTagFieldNumber(tag)) {
-				case ENTRY_INDEX:
+				case ENTRY_INDEX -> {
 					Map.Entry<String, Object> entry = reader.readObject(StringKeyMapEntry.class);
 					map.put(entry.getKey(), entry.getValue());
-					break;
-				default:
-					reader.skipField(tag);
+				}
+				default -> reader.skipField(tag);
 			}
 		}
 		return new JsonObject(map);

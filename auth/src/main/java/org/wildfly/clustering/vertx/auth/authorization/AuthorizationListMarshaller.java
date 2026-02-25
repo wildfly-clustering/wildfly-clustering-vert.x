@@ -53,11 +53,8 @@ public class AuthorizationListMarshaller<A extends Authorization> implements Pro
 		while (!reader.isAtEnd()) {
 			int tag = reader.readTag();
 			switch (WireType.getTagFieldNumber(tag)) {
-				case AUTHORIZATION_INDEX:
-					this.appender.accept(authorization, reader.readAny(Authorization.class));
-					break;
-				default:
-					reader.skipField(tag);
+				case AUTHORIZATION_INDEX -> this.appender.accept(authorization, reader.readAny(Authorization.class));
+				default -> reader.skipField(tag);
 			}
 		}
 		return authorization;

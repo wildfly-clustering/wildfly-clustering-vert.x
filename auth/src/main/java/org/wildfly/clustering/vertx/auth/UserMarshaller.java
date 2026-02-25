@@ -5,17 +5,20 @@
 package org.wildfly.clustering.vertx.auth;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.authorization.Authorization;
-import io.vertx.ext.auth.authorization.Authorizations;
 
 import org.infinispan.protostream.descriptors.WireType;
+import org.wildfly.clustering.function.Consumer;
+import org.wildfly.clustering.function.Function;
 import org.wildfly.clustering.marshalling.protostream.ProtoStreamMarshaller;
 import org.wildfly.clustering.marshalling.protostream.ProtoStreamReader;
 import org.wildfly.clustering.marshalling.protostream.ProtoStreamWriter;
@@ -46,23 +49,15 @@ public enum UserMarshaller implements ProtoStreamMarshaller<User> {
 		while (!reader.isAtEnd()) {
 			int tag = reader.readTag();
 			switch (WireType.getTagFieldNumber(tag)) {
-				case PRINCIPAL_INDEX:
-					principal = reader.readObject(JsonObject.class);
-					break;
-				case AUTHORIZATION_ENTRY_INDEX:
-					Map.Entry<String, Set<Authorization>> entry = reader.readObject(StringKeyMapEntry.class);
-					authorizations.add(entry);
-					break;
-				case ATTRIBUTES_INDEX:
-					attributes = reader.readObject(JsonObject.class);
-					break;
-				default:
-					reader.skipField(tag);
+				case PRINCIPAL_INDEX -> principal = reader.readObject(JsonObject.class);
+				case AUTHORIZATION_ENTRY_INDEX -> authorizations.add(reader.readObject(StringKeyMapEntry.class));
+				case ATTRIBUTES_INDEX -> attributes = reader.readObject(JsonObject.class);
+				default -> reader.skipField(tag);
 			}
 		}
 		User user = User.create(principal, attributes);
 		for (Map.Entry<String, Set<Authorization>> entry : authorizations) {
-			user.authorizations().add(entry.getKey(), entry.getValue());
+			user.authorizations().put(entry.getKey(), entry.getValue());
 		}
 		return user;
 	}
@@ -73,9 +68,10 @@ public enum UserMarshaller implements ProtoStreamMarshaller<User> {
 		if (!principal.isEmpty()) {
 			writer.writeObject(PRINCIPAL_INDEX, principal);
 		}
-		Authorizations authorizations = user.authorizations();
-		for (String provider : authorizations.getProviderIds()) {
-			writer.writeObject(AUTHORIZATION_ENTRY_INDEX, new StringKeyMapEntry<>(provider, authorizations.get(provider)));
+		Map<String, Set<Authorization>> authorizations = new TreeMap<>();
+		user.authorizations().forEach((provider, authorization) -> authorizations.computeIfAbsent(provider, Function.of(Consumer.empty(), HashSet::new)).add(authorization));
+		for (Map.Entry<String, Set<Authorization>> entry : authorizations.entrySet()) {
+			writer.writeObject(AUTHORIZATION_ENTRY_INDEX, new StringKeyMapEntry<>(entry.getKey(), entry.getValue()));
 		}
 		JsonObject attributes = user.attributes();
 		if (!attributes.isEmpty()) {

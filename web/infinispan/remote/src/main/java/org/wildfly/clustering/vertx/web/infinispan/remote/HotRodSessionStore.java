@@ -11,7 +11,6 @@ import java.util.Objects;
 import java.util.OptionalInt;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.BiFunction;
 
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import io.vertx.core.Context;
@@ -32,19 +31,16 @@ import org.kohsuke.MetaInfServices;
 import org.wildfly.clustering.cache.infinispan.marshalling.MediaTypes;
 import org.wildfly.clustering.cache.infinispan.marshalling.UserMarshaller;
 import org.wildfly.clustering.cache.infinispan.remote.RemoteCacheConfiguration;
-import org.wildfly.clustering.function.Runnable;
+import org.wildfly.clustering.function.BiFunction;
+import org.wildfly.clustering.function.Runner;
 import org.wildfly.clustering.marshalling.protostream.ClassLoaderMarshaller;
 import org.wildfly.clustering.marshalling.protostream.ProtoStreamByteBufferMarshaller;
 import org.wildfly.clustering.marshalling.protostream.SerializationContextBuilder;
-import org.wildfly.clustering.session.ImmutableSession;
 import org.wildfly.clustering.session.SessionManagerFactory;
 import org.wildfly.clustering.session.SessionManagerFactoryConfiguration;
 import org.wildfly.clustering.session.infinispan.remote.HotRodSessionManagerFactory;
-import org.wildfly.clustering.session.spec.SessionEventListenerSpecificationProvider;
-import org.wildfly.clustering.session.spec.SessionSpecificationProvider;
 import org.wildfly.clustering.vertx.web.DistributableSessionManagerFactoryConfiguration;
 import org.wildfly.clustering.vertx.web.DistributableSessionStore;
-import org.wildfly.clustering.vertx.web.VertxSessionSpecificationProvider;
 
 /**
  * A remote Infinispan {@link SessionStore} for Vert.x.
@@ -111,7 +107,7 @@ public class HotRodSessionStore extends DistributableSessionStore {
 				closeTasks.add(0, container::close);
 
 				String deploymentName = factoryConfiguration.getDeploymentName();
-				OptionalInt maxActiveSessions = factoryConfiguration.getMaxSize();
+				OptionalInt maxActiveSessions = factoryConfiguration.getSizeThreshold();
 
 				container.getConfiguration().addRemoteCache(deploymentName, builder -> builder.forceReturnValues(false).nearCacheMode(maxActiveSessions.isEmpty() ? NearCacheMode.DISABLED : NearCacheMode.INVALIDATED).transactionMode(TransactionMode.NONE).configuration(cacheConfiguration));
 
@@ -124,22 +120,10 @@ public class HotRodSessionStore extends DistributableSessionStore {
 						.keyType(MediaType.APPLICATION_OBJECT).keyMarshaller(container.getMarshaller())
 						.valueType(MediaType.APPLICATION_OBJECT).valueMarshaller(container.getMarshaller())
 						.build();
-				return new HotRodSessionManagerFactory<>(new HotRodSessionManagerFactory.Configuration<ImmutableSession, Context, Void, Void>() {
+				return new HotRodSessionManagerFactory<>(new HotRodSessionManagerFactory.Configuration<>() {
 					@Override
 					public SessionManagerFactoryConfiguration<Void> getSessionManagerFactoryConfiguration() {
 						return factoryConfiguration;
-					}
-
-					@Override
-					public SessionSpecificationProvider<ImmutableSession, Context> getSessionSpecificationProvider() {
-						// TODO Auto-generated method stub
-						return VertxSessionSpecificationProvider.INSTANCE;
-					}
-
-					@Override
-					public SessionEventListenerSpecificationProvider<ImmutableSession, Void> getSessionEventListenerSpecificationProvider() {
-						// TODO Auto-generated method stub
-						return VertxSessionSpecificationProvider.INSTANCE;
 					}
 
 					@Override
@@ -148,6 +132,6 @@ public class HotRodSessionStore extends DistributableSessionStore {
 					}
 				});
 			}
-		}, Runnable.runAll(closeTasks));
+		}, Runner.runAll(closeTasks));
 	}
 }
