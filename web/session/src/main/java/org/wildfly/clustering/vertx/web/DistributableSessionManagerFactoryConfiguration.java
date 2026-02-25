@@ -94,12 +94,12 @@ public class DistributableSessionManagerFactoryConfiguration implements SessionM
 	}
 
 	@Override
-	public OptionalInt getMaxSize() {
+	public OptionalInt getSizeThreshold() {
 		return this.maxSize;
 	}
 
 	@Override
-	public Optional<Duration> getIdleTimeout() {
+	public Optional<Duration> getIdleThreshold() {
 		return this.idleTimeout;
 	}
 

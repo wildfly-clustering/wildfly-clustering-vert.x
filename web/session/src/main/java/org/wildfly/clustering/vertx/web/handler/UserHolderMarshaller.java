@@ -59,11 +59,8 @@ public enum UserHolderMarshaller implements ProtoStreamMarshaller<UserHolder> {
 		while (!reader.isAtEnd()) {
 			int tag = reader.readTag();
 			switch (WireType.getTagFieldNumber(tag)) {
-				case USER_INDEX:
-					user = reader.readAny(User.class);
-					break;
-				default:
-					reader.skipField(tag);
+				case USER_INDEX -> user = reader.readAny(User.class);
+				default -> reader.skipField(tag);
 			}
 		}
 		return new UserHolder(new UserRoutingContext(user));

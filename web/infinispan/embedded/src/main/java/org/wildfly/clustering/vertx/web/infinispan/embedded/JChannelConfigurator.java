@@ -20,8 +20,10 @@ import javax.sql.DataSource;
 
 import org.infinispan.commons.util.StringPropertyReplacer;
 import org.infinispan.configuration.global.TransportConfiguration;
+import org.infinispan.remoting.transport.NodeVersion;
 import org.infinispan.remoting.transport.jgroups.JGroupsChannelConfigurator;
 import org.infinispan.remoting.transport.jgroups.JGroupsTransport;
+import org.jgroups.Address;
 import org.jgroups.ChannelListener;
 import org.jgroups.EmptyMessage;
 import org.jgroups.Global;
@@ -36,6 +38,7 @@ import org.jgroups.conf.XmlConfigurator;
 import org.jgroups.fork.UnknownForkHandler;
 import org.jgroups.protocols.FORK;
 import org.jgroups.protocols.TP;
+import org.jgroups.stack.AddressGenerator;
 import org.jgroups.stack.Configurator;
 import org.jgroups.stack.Protocol;
 import org.jgroups.util.DefaultThreadFactory;
@@ -47,12 +50,15 @@ import org.jgroups.util.Util;
  * Configurator used to create JGroups channels.
  * @author Paul Ferraro
  */
-public class JChannelConfigurator implements JGroupsChannelConfigurator {
+public class JChannelConfigurator implements JGroupsChannelConfigurator, AddressGenerator {
 
-	static final String DEFAULT_JGROUPS_RESOURCE = "default-configs/default-jgroups-udp.xml";
+	static final String DEFAULT_JGROUPS_RESOURCE = "org/infinispan/configuration/default-jgroups-udp.xml";
 	static final ByteBuffer UNKNOWN_FORK_RESPONSE = ByteBuffer.allocate(0);
 
 	private final String name;
+	private final String site;
+	private final String rack;
+	private final String machine;
 	private final ProtocolStackConfigurator configurator;
 	private final List<ChannelListener> listeners = new LinkedList<>();
 
@@ -64,10 +70,16 @@ public class JChannelConfigurator implements JGroupsChannelConfigurator {
 	 */
 	public JChannelConfigurator(TransportConfiguration transport, ClassLoader loader) throws IOException {
 		this.name = transport.stack();
+		this.site = transport.siteId();
+		this.rack = transport.rackId();
+		this.machine = transport.machineId();
 		this.configurator = getProtocolStackConfigurator(transport, loader);
 	}
 
 	private static ProtocolStackConfigurator getProtocolStackConfigurator(TransportConfiguration transport, ClassLoader loader) throws IOException {
+		if (transport.stack() != null) {
+			return transport.jgroups().configurator(transport.stack());
+		}
 		Properties properties = transport.properties();
 		if (properties.containsKey(JGroupsTransport.CHANNEL_CONFIGURATOR)) {
 			return (JGroupsChannelConfigurator) properties.get(JGroupsTransport.CHANNEL_CONFIGURATOR);
@@ -159,7 +171,10 @@ public class JChannelConfigurator implements JGroupsChannelConfigurator {
 		transport.setThreadFactory(new ClassLoaderThreadFactory(new DefaultThreadFactory("jgroups", false, true), JChannelConfigurator.class.getClassLoader()));
 
 		JChannel channel = new JChannel(protocols);
+		channel.setName(name);
 		this.listeners.forEach(channel::addChannelListener);
+		channel.addAddressGenerator(this);
+		channel.setDiscardOwnMessages(true);
 		return channel;
 	}
 
@@ -169,5 +184,15 @@ public class JChannelConfigurator implements JGroupsChannelConfigurator {
 
 	@Override
 	public void setDataSource(DataSource dataSource) {
+	}
+
+	@Override
+	public Address generateAddress() {
+		return this.generateAddress(null);
+	}
+
+	@Override
+	public Address generateAddress(String name) {
+		return org.infinispan.remoting.transport.Address.randomUUID(name, NodeVersion.INSTANCE, this.site, this.rack, this.machine);
 	}
 }

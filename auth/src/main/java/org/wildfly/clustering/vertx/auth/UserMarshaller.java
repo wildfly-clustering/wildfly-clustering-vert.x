@@ -49,18 +49,10 @@ public enum UserMarshaller implements ProtoStreamMarshaller<User> {
 		while (!reader.isAtEnd()) {
 			int tag = reader.readTag();
 			switch (WireType.getTagFieldNumber(tag)) {
-				case PRINCIPAL_INDEX:
-					principal = reader.readObject(JsonObject.class);
-					break;
-				case AUTHORIZATION_ENTRY_INDEX:
-					Map.Entry<String, Set<Authorization>> entry = reader.readObject(StringKeyMapEntry.class);
-					authorizations.add(entry);
-					break;
-				case ATTRIBUTES_INDEX:
-					attributes = reader.readObject(JsonObject.class);
-					break;
-				default:
-					reader.skipField(tag);
+				case PRINCIPAL_INDEX -> principal = reader.readObject(JsonObject.class);
+				case AUTHORIZATION_ENTRY_INDEX -> authorizations.add(reader.readObject(StringKeyMapEntry.class));
+				case ATTRIBUTES_INDEX -> attributes = reader.readObject(JsonObject.class);
+				default -> reader.skipField(tag);
 			}
 		}
 		User user = User.create(principal, attributes);

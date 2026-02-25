@@ -4,6 +4,7 @@
  */
 package org.wildfly.clustering.vertx.web;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -41,7 +42,7 @@ public class DistributableSession implements VertxSession {
 		this.session = session;
 		this.batch = batch;
 		this.closeTask = closeTask;
-		this.startTime = session.getMetaData().isNew() ? session.getMetaData().getCreationTime() : Instant.now();
+		this.startTime = session.getMetaData().getLastAccess().isPresent() ? session.getMetaData().getCreationTime() : Instant.now();
 		this.originalId = session.getId();
 	}
 
@@ -55,8 +56,8 @@ public class DistributableSession implements VertxSession {
 				for (Map.Entry<String, Object> entry : oldSession.getAttributes().entrySet()) {
 					newSession.getAttributes().put(entry.getKey(), entry.getValue());
 				}
-				newSession.getMetaData().setTimeout(oldSession.getMetaData().getTimeout());
-				newSession.getMetaData().setLastAccess(oldSession.getMetaData().getLastAccessStartTime(), oldSession.getMetaData().getLastAccessTime());
+				oldSession.getMetaData().getMaxIdle().ifPresent(newSession.getMetaData()::setMaxIdle);
+				oldSession.getMetaData().getLastAccess().ifPresent(newSession.getMetaData()::setLastAccess);
 				oldSession.invalidate();
 				this.session = newSession;
 				oldSession.close();
@@ -115,7 +116,7 @@ public class DistributableSession implements VertxSession {
 
 	@Override
 	public long lastAccessed() {
-		return this.session.getMetaData().getLastAccessTime().toEpochMilli();
+		return this.session.getMetaData().getLastAccessTime().orElse(this.session.getMetaData().getCreationTime()).toEpochMilli();
 	}
 
 	@Override
@@ -140,7 +141,7 @@ public class DistributableSession implements VertxSession {
 
 	@Override
 	public long timeout() {
-		return this.session.getMetaData().getTimeout().toMillis();
+		return this.session.getMetaData().getMaxIdle().orElse(Duration.ZERO).toMillis();
 	}
 
 	@Override
