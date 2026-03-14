@@ -5,7 +5,7 @@
 package org.wildfly.clustering.vertx.web;
 
 import java.time.Duration;
-import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.StampedLock;
@@ -17,11 +17,9 @@ import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.sstore.SessionStore;
 
 import org.jboss.logging.Logger;
-import org.wildfly.clustering.cache.batch.Batch;
-import org.wildfly.clustering.cache.batch.SuspendedBatch;
-import org.wildfly.clustering.context.Context;
 import org.wildfly.clustering.function.BiFunction;
 import org.wildfly.clustering.function.Consumer;
+import org.wildfly.clustering.function.Function;
 import org.wildfly.clustering.function.Predicate;
 import org.wildfly.clustering.function.Supplier;
 import org.wildfly.clustering.session.ImmutableSession;
@@ -67,7 +65,7 @@ public class DistributableSessionStore implements SessionStore {
 
 			@Override
 			public Consumer<ImmutableSession> getExpirationListener() {
-				return Consumer.empty();
+				return Consumer.of();
 			}
 
 			@Override
@@ -92,15 +90,18 @@ public class DistributableSessionStore implements SessionStore {
 	@Override
 	public io.vertx.ext.web.Session createSession(long timeout) {
 		String id = this.manager.getIdentifierFactory().get();
-		Map.Entry<SuspendedBatch, Runnable> entry = this.createBatchEntry();
-		SuspendedBatch suspendedBatch = entry.getKey();
-		Runnable closeTask = entry.getValue();
-		try (Context<Batch> context = suspendedBatch.resumeWithContext()) {
+		Runnable closeTask = this.getSessionCloseTask();
+		try {
 			Session<Void> session = this.manager.createSession(id);
-			session.getMetaData().setMaxIdle(Duration.ofMillis(timeout));
-			return new DistributableSession(this.manager, session, suspendedBatch, closeTask);
+			try {
+				session.getMetaData().setMaxIdle(Duration.ofMillis(timeout));
+				return new DistributableSession(this.manager, session, closeTask);
+			} catch (RuntimeException | Error e) {
+				Consumer.close().accept(session);
+				throw e;
+			}
 		} catch (RuntimeException | Error e) {
-			rollback(entry);
+			closeTask.run();
 			throw e;
 		}
 	}
@@ -113,45 +114,10 @@ public class DistributableSessionStore implements SessionStore {
 
 	@Override
 	public Future<io.vertx.ext.web.Session> get(String id) {
-		return this.context.executeBlocking(this::createBatchEntry)
-				.compose(entry -> {
-					try (Context<Batch> context = entry.getKey().resumeWithContext()) {
-						return Future.fromCompletionStage(this.manager.findSessionAsync(id), this.context)
-								.map(session -> ((session != null) && session.isValid() && !session.getMetaData().isExpired()) ? new DistributableSession(this.manager, session, entry.getKey(), entry.getValue()) : close(entry))
-								.onFailure(e -> rollback(entry));
-					}
-				});
-	}
-
-	private Map.Entry<SuspendedBatch, Runnable> createBatchEntry() {
-		Runnable closeTask = this.getSessionCloseTask();
-		try {
-			return Map.entry(this.manager.getBatchFactory().get().suspend(), closeTask);
-		} catch (RuntimeException | Error e) {
-			closeTask.run();
-			throw e;
-		}
-	}
-
-	private static io.vertx.ext.web.Session close(Map.Entry<SuspendedBatch, Runnable> entry) {
-		close(entry, Consumer.empty());
-		return null;
-	}
-
-	private static void rollback(Map.Entry<SuspendedBatch, Runnable> entry) {
-		close(entry, Batch::discard);
-	}
-
-	private static void close(Map.Entry<SuspendedBatch, Runnable> entry, Consumer<Batch> batchTask) {
-		try (Context<Batch> context = entry.getKey().resumeWithContext()) {
-			try (Batch batch = context.get()) {
-				batchTask.accept(batch);
-			}
-		} catch (RuntimeException | Error e) {
-			LOGGER.warn(e.getLocalizedMessage(), e);
-		} finally {
-			entry.getValue().run();
-		}
+		return this.context.executeBlocking(this::getSessionCloseTask)
+				.compose(closeTask -> Future.fromCompletionStage(this.manager.findSessionAsync(id), this.context)
+				.map(Function.when(Objects::nonNull, Function.<Session<Void>, io.vertx.ext.web.Session>when(Session.VALID, session -> new DistributableSession(this.manager, session, closeTask), Function.of(Consumer.of().thenRun(closeTask), Supplier.of(null))), Function.of(null)))
+				.onFailure(e -> closeTask.run()));
 	}
 
 	@Override

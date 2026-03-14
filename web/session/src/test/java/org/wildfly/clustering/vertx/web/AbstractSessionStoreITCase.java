@@ -18,7 +18,7 @@ import org.wildfly.clustering.vertx.web.routes.SessionRouterConfigurator;
 /**
  * @author Paul Ferraro
  */
-public class AbstractSessionStoreITCase extends AbstractSessionManagerITCase<JavaArchive> {
+public abstract class AbstractSessionStoreITCase extends AbstractSessionManagerITCase<JavaArchive> {
 
 	protected AbstractSessionStoreITCase(Optional<Duration> failoverGracePeriod) {
 		super(new SessionManagementTesterConfiguration() {

@@ -11,6 +11,7 @@ import io.vertx.core.Context;
 import org.kohsuke.MetaInfServices;
 import org.wildfly.clustering.function.Consumer;
 import org.wildfly.clustering.session.ImmutableSession;
+import org.wildfly.clustering.session.Session;
 import org.wildfly.clustering.session.SessionManager;
 import org.wildfly.clustering.session.container.ContainerProvider;
 
@@ -33,13 +34,18 @@ public class VertxContainerProvider implements ContainerProvider<Context, Immuta
 	}
 
 	@Override
-	public ImmutableSession getDetachableSession(SessionManager<Void> manager, ImmutableSession session, Context context) {
+	public ImmutableSession getSession(SessionManager<Void> manager, String id, Context context) {
+		return manager.findImmutableSession(id);
+	}
+
+	@Override
+	public ImmutableSession getSession(SessionManager<Void> manager, ImmutableSession session, Context context) {
 		return session;
 	}
 
 	@Override
-	public ImmutableSession getDetachedSession(SessionManager<Void> manager, String id, Context context) {
-		return manager.getDetachedSession(id);
+	public ImmutableSession getSession(SessionManager<Void> manager, Session<Void> session, Context context) {
+		return session;
 	}
 
 	@Override
@@ -49,12 +55,12 @@ public class VertxContainerProvider implements ContainerProvider<Context, Immuta
 
 	@Override
 	public Consumer<ImmutableSession> getPrePassivateEventNotifier(Void listener) {
-		return Consumer.empty();
+		return Consumer.of();
 	}
 
 	@Override
 	public Consumer<ImmutableSession> getPostActivateEventNotifier(Void listener) {
-		return Consumer.empty();
+		return Consumer.of();
 	}
 
 	@Override

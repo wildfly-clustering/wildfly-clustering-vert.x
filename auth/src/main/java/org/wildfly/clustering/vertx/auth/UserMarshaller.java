@@ -69,7 +69,7 @@ public enum UserMarshaller implements ProtoStreamMarshaller<User> {
 			writer.writeObject(PRINCIPAL_INDEX, principal);
 		}
 		Map<String, Set<Authorization>> authorizations = new TreeMap<>();
-		user.authorizations().forEach((provider, authorization) -> authorizations.computeIfAbsent(provider, Function.of(Consumer.empty(), HashSet::new)).add(authorization));
+		user.authorizations().forEach((provider, authorization) -> authorizations.computeIfAbsent(provider, Function.of(Consumer.of(), HashSet::new)).add(authorization));
 		for (Map.Entry<String, Set<Authorization>> entry : authorizations.entrySet()) {
 			writer.writeObject(AUTHORIZATION_ENTRY_INDEX, new StringKeyMapEntry<>(entry.getKey(), entry.getValue()));
 		}
