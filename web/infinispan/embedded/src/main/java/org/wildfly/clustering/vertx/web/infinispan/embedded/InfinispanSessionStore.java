@@ -8,8 +8,8 @@ import java.io.File;
 import java.lang.management.ManagementFactory;
 import java.net.URL;
 import java.time.Duration;
+import java.util.Deque;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.Properties;
@@ -47,6 +47,7 @@ import org.infinispan.transaction.tm.EmbeddedTransactionManager;
 import org.infinispan.util.concurrent.BlockingManager;
 import org.infinispan.util.concurrent.NonBlockingManager;
 import org.jboss.logging.Logger;
+import org.jgroups.Address;
 import org.jgroups.JChannel;
 import org.jgroups.Message;
 import org.jgroups.jmx.JmxConfigurator;
@@ -100,7 +101,7 @@ public class InfinispanSessionStore extends DistributableSessionStore {
 		this(new LinkedList<>());
 	}
 
-	private InfinispanSessionStore(List<Runnable> closeTasks) {
+	private InfinispanSessionStore(Deque<Runnable> closeTasks) {
 		super(new BiFunction<>() {
 			@Override
 			public SessionManagerFactory<Context, Void> apply(Context context, JsonObject options) {
@@ -111,7 +112,7 @@ public class InfinispanSessionStore extends DistributableSessionStore {
 				String templateName = options.getString(CACHE);
 
 				COUNTER.incrementAndGet();
-				closeTasks.add(0, () -> {
+				closeTasks.add(() -> {
 					// Stop RxJava schedulers when no longer in use
 					if (COUNTER.decrementAndGet() == 0) {
 						Schedulers.shutdown();
@@ -141,7 +142,7 @@ public class InfinispanSessionStore extends DistributableSessionStore {
 						LOGGER.debugf("Connecting %s to %s", transport.nodeName(), transport.clusterName());
 						channel.connect(transport.clusterName());
 						LOGGER.debugf("Connected %s to %s with view: %s", channel.getName(), channel.getClusterName(), channel.view().getMembers());
-						closeTasks.add(0, () -> {
+						closeTasks.add(() -> {
 							LOGGER.debugf("Disconnecting %s from %s with view: %s", channel.getName(), channel.getClusterName(), channel.view().getMembers());
 							try {
 								channel.disconnect();
@@ -155,7 +156,7 @@ public class InfinispanSessionStore extends DistributableSessionStore {
 						if (jmx.enabled()) {
 							ObjectName prefix = new ObjectName(jmx.domain(), "manager", ObjectName.quote(containerName));
 							JmxConfigurator.registerChannel(channel, ManagementFactory.getPlatformMBeanServer(), prefix, transport.clusterName(), true);
-							closeTasks.add(0, () -> {
+							closeTasks.add(() -> {
 								try {
 									JmxConfigurator.unregisterChannel(channel, ManagementFactory.getPlatformMBeanServer(), prefix, transport.clusterName());
 								} catch (Exception e) {
@@ -191,7 +192,7 @@ public class InfinispanSessionStore extends DistributableSessionStore {
 						}
 					}) : null;
 					if (channelCommandDispatcherFactory != null) {
-						closeTasks.add(0, channelCommandDispatcherFactory::close);
+						closeTasks.add(channelCommandDispatcherFactory::close);
 					}
 
 					global.classLoader(loader)
@@ -217,7 +218,7 @@ public class InfinispanSessionStore extends DistributableSessionStore {
 
 					EmbeddedCacheManager container = new DefaultCacheManager(holder, false);
 					container.start();
-					closeTasks.add(0, container::stop);
+					closeTasks.add(container::stop);
 
 					Configuration template = (templateName != null) ? container.getCacheConfiguration(templateName) : container.getDefaultCacheConfiguration();
 					if (template == null) {
@@ -249,11 +250,11 @@ public class InfinispanSessionStore extends DistributableSessionStore {
 					}
 
 					container.defineConfiguration(deploymentName, builder.build());
-					closeTasks.add(0, () -> container.undefineConfiguration(deploymentName));
+					closeTasks.add(() -> container.undefineConfiguration(deploymentName));
 
 					CacheContainerCommandDispatcherFactory commandDispatcherFactory = (channelCommandDispatcherFactory != null) ? new EmbeddedCacheManagerCommandDispatcherFactory<>(new ChannelEmbeddedCacheManagerCommandDispatcherFactoryConfiguration() {
 						@Override
-						public GroupCommandDispatcherFactory<org.jgroups.Address, ChannelGroupMember> getCommandDispatcherFactory() {
+						public GroupCommandDispatcherFactory<Address, ChannelGroupMember> getCommandDispatcherFactory() {
 							return channelCommandDispatcherFactory;
 						}
 
@@ -270,7 +271,7 @@ public class InfinispanSessionStore extends DistributableSessionStore {
 
 					Cache<?, ?> cache = container.getCache(deploymentName);
 					cache.start();
-					closeTasks.add(0, cache::stop);
+					closeTasks.add(cache::stop);
 
 					return new InfinispanSessionManagerFactory<>(new InfinispanSessionManagerFactory.Configuration<>() {
 						@Override
@@ -303,6 +304,6 @@ public class InfinispanSessionStore extends DistributableSessionStore {
 					throw new IllegalStateException(e);
 				}
 			}
-		}, Runner.runAll(closeTasks));
+		}, Runner.of(closeTasks::descendingIterator));
 	}
 }

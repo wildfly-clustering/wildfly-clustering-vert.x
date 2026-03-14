@@ -31,7 +31,7 @@ public class JsonMarshallingTestCase {
 		array.add(1);
 		array.add(100L);
 		// JsonArray.equals(...) is buggy and confuses float vs double.
-//		array.add(0.1f);
+		// array.add(0.1f);
 		array.add(0.01d);
 		array.add("foo".getBytes());
 		array.add(true);

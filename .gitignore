@@ -14,3 +14,5 @@ buildNumber.properties
 .checkstyle
 .classpath
 .settings/
+# IntelliJ
+.idea/

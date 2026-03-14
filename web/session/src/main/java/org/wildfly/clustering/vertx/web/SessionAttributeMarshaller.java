@@ -44,5 +44,4 @@ public enum SessionAttributeMarshaller implements Function<ClassLoader, ByteBuff
 			return new ProtoStreamByteBufferMarshaller(SerializationContextBuilder.newInstance(ClassLoaderMarshaller.of(loader)).load(loader).build());
 		}
 	},
-	;
 }

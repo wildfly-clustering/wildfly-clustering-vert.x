@@ -7,131 +7,141 @@ package org.wildfly.clustering.vertx.web;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
-import java.util.function.Consumer;
-import java.util.function.Function;
+import java.util.concurrent.atomic.AtomicReference;
 
-import org.wildfly.clustering.cache.batch.Batch;
-import org.wildfly.clustering.cache.batch.SuspendedBatch;
-import org.wildfly.clustering.context.Context;
+import org.wildfly.clustering.function.Consumer;
+import org.wildfly.clustering.function.Function;
+import org.wildfly.clustering.function.Predicate;
+import org.wildfly.clustering.server.util.BlockingReference;
+import org.wildfly.clustering.session.ImmutableSession;
+import org.wildfly.clustering.session.ImmutableSessionMetaData;
 import org.wildfly.clustering.session.Session;
 import org.wildfly.clustering.session.SessionManager;
+import org.wildfly.clustering.session.SessionMetaData;
 
 /**
  * A distributable Vert.x session.
  */
 public class DistributableSession implements VertxSession {
-	private static final System.Logger LOGGER = System.getLogger(DistributableSession.class.getPackageName());
 
 	private final SessionManager<Void> manager;
-	private final SuspendedBatch batch;
-	private final Runnable closeTask;
+	private final BlockingReference<Session<Void>> reference;
+	private final AtomicReference<Runnable> closeTask;
 	private final Instant startTime;
-
-	private volatile String originalId;
-	private volatile Session<Void> session;
+	private final String originalId;
 
 	/**
 	 * Creates a distributable Vert.x session backed by the specified session.
 	 * @param manager the manager of the specified session
 	 * @param session the decorated session
-	 * @param batch the batch associated with the specified session
 	 * @param closeTask a task to invoke on {@link VertxSession#close()}.
 	 */
-	public DistributableSession(SessionManager<Void> manager, Session<Void> session, SuspendedBatch batch, Runnable closeTask) {
+	public DistributableSession(SessionManager<Void> manager, Session<Void> session, Runnable closeTask) {
 		this.manager = manager;
-		this.session = session;
-		this.batch = batch;
-		this.closeTask = closeTask;
+		this.reference = BlockingReference.of(session);
+		this.closeTask = new AtomicReference<>(closeTask);
 		this.startTime = session.getMetaData().getLastAccess().isPresent() ? session.getMetaData().getCreationTime() : Instant.now();
 		this.originalId = session.getId();
 	}
 
 	@Override
 	public io.vertx.ext.web.Session regenerateId() {
-		Session<Void> oldSession = this.session;
 		String id = this.manager.getIdentifierFactory().get();
-		try (Context<Batch> context = this.batch.resumeWithContext()) {
+		this.reference.getWriter(Session.VALID).update(currentSession -> {
+			SessionMetaData currentMetaData = currentSession.getMetaData();
+			Map<String, Object> currentAttributes = currentSession.getAttributes();
 			Session<Void> newSession = this.manager.createSession(id);
 			try {
-				for (Map.Entry<String, Object> entry : oldSession.getAttributes().entrySet()) {
-					newSession.getAttributes().put(entry.getKey(), entry.getValue());
-				}
-				oldSession.getMetaData().getMaxIdle().ifPresent(newSession.getMetaData()::setMaxIdle);
-				oldSession.getMetaData().getLastAccess().ifPresent(newSession.getMetaData()::setLastAccess);
-				oldSession.invalidate();
-				this.session = newSession;
-				oldSession.close();
-			} catch (IllegalStateException e) {
+				newSession.getAttributes().putAll(currentAttributes);
+				SessionMetaData newMetaData = newSession.getMetaData();
+				currentMetaData.getMaxIdle().ifPresent(newMetaData::setMaxIdle);
+				currentMetaData.getLastAccess().ifPresent(newMetaData::setLastAccess);
+				currentSession.invalidate();
+				return newSession;
+			} catch (RuntimeException | Error e) {
 				newSession.invalidate();
 				throw e;
+			} finally {
+				Consumer.close().accept(newSession.isValid() ? currentSession : newSession);
 			}
-		}
+		});
 		return this;
 	}
 
 	@Override
 	public String id() {
-		return this.session.getId();
+		return this.reference.getReader().map(ImmutableSession.IDENTIFIER).get();
 	}
 
 	@Override
 	public io.vertx.ext.web.Session put(String key, Object value) {
-		this.session.getAttributes().put(key, value);
+		this.reference.getReader().map(Session.ATTRIBUTES).map(Session.SET_ATTRIBUTE.composeUnary(Function.identity(), Function.of(Map.entry(key, value)))).get();
 		return this;
 	}
 
 	@Override
 	public io.vertx.ext.web.Session putIfAbsent(String key, Object value) {
-		this.session.getAttributes().putIfAbsent(key, value);
+		this.reference.getReader().map(Session.ATTRIBUTES).map(attributes -> attributes.putIfAbsent(key, value)).get();
 		return this;
 	}
 
 	@Override
-	public io.vertx.ext.web.Session computeIfAbsent(String key, Function<String, Object> mappingFunction) {
-		this.session.getAttributes().computeIfAbsent(key, mappingFunction);
+	public io.vertx.ext.web.Session computeIfAbsent(String key, java.util.function.Function<String, Object> mappingFunction) {
+		this.reference.getReader().map(Session.ATTRIBUTES).map(attributes -> attributes.computeIfAbsent(key, mappingFunction)).get();
 		return this;
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T> T get(String key) {
-		return (T) this.session.getAttributes().get(key);
+		return (T) this.reference.getReader().map(Session.ATTRIBUTES).map(ImmutableSession.GET_ATTRIBUTE.composeUnary(Function.identity(), Function.of(key))).get();
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T> T remove(String key) {
-		return (T) this.session.getAttributes().remove(key);
+		return (T) this.reference.getReader().map(Session.ATTRIBUTES).map(Session.REMOVE_ATTRIBUTE.composeUnary(Function.identity(), Function.of(key))).get();
 	}
 
 	@Override
 	public Map<String, Object> data() {
-		return this.session.getAttributes();
+		return this.reference.getReader().map(Session.ATTRIBUTES).get();
 	}
 
 	@Override
 	public boolean isEmpty() {
-		return this.session.getAttributes().isEmpty();
+		return this.reference.getReader().map(ImmutableSession.ATTRIBUTES).map(ImmutableSession.ATTRIBUTE_NAMES).get().isEmpty();
 	}
 
 	@Override
 	public long lastAccessed() {
-		return this.session.getMetaData().getLastAccessTime().orElse(this.session.getMetaData().getCreationTime()).toEpochMilli();
+		return this.reference.getReader().map(ImmutableSession.METADATA).map(ImmutableSessionMetaData.LAST_ACCESS_TIME).get().toEpochMilli();
 	}
 
 	@Override
 	public void destroy() {
-		this.close(Session::invalidate);
+		Runnable closeTask = this.closeTask.getAndSet(null);
+		try {
+			this.reference.getReader().read(invalidSession -> {
+				try (Session<Void> session = invalidSession) {
+					session.invalidate();
+				}
+			});
+		} finally {
+			if (closeTask != null) {
+				closeTask.run();
+			}
+		}
 	}
 
 	@Override
 	public boolean isDestroyed() {
-		return !this.session.isValid();
+		return this.reference.getReader().map(ImmutableSession.VALID.negate().thenBox()).get();
 	}
 
 	@Override
 	public boolean isRegenerated() {
-		return this.session.getId() != this.originalId;
+		return this.reference.getReader().map(ImmutableSession.IDENTIFIER).map(Predicate.equalTo(this.originalId).thenBox()).get();
 	}
 
 	@Override
@@ -141,27 +151,22 @@ public class DistributableSession implements VertxSession {
 
 	@Override
 	public long timeout() {
-		return this.session.getMetaData().getMaxIdle().orElse(Duration.ZERO).toMillis();
+		return this.reference.getReader().map(ImmutableSession.METADATA).map(ImmutableSessionMetaData.MAX_IDLE).get().orElse(Duration.ZERO).toMillis();
 	}
 
 	@Override
 	public void close() {
-		this.close(session -> session.getMetaData().setLastAccess(this.startTime, Instant.now()));
-	}
-
-	private void close(Consumer<Session<Void>> closeTask) {
-		try (Context<Batch> context = this.batch.resumeWithContext()) {
-			try (Batch batch = context.get()) {
-				try (Session<Void> session = this.session) {
-					if (session.isValid()) {
-						closeTask.accept(session);
+		Runnable closeTask = this.closeTask.getAndSet(null);
+		if (closeTask != null) {
+			try {
+				this.reference.getReader().read(completeSession -> {
+					try (Session<Void> session = completeSession) {
+						session.getMetaData().setLastAccess(this.startTime, Instant.now());
 					}
-				}
+				});
+			} finally {
+				closeTask.run();
 			}
-		} catch (RuntimeException | Error e) {
-			LOGGER.log(System.Logger.Level.WARNING, e.getLocalizedMessage(), e);
-		} finally {
-			this.closeTask.run();
 		}
 	}
 }

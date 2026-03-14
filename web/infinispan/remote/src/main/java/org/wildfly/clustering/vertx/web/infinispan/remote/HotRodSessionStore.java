@@ -132,6 +132,6 @@ public class HotRodSessionStore extends DistributableSessionStore {
 					}
 				});
 			}
-		}, Runner.runAll(closeTasks));
+		}, Runner.of(closeTasks));
 	}
 }
