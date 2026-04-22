@@ -16,7 +16,6 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.sstore.SessionStore;
 
-import org.jboss.logging.Logger;
 import org.wildfly.clustering.function.BiFunction;
 import org.wildfly.clustering.function.Consumer;
 import org.wildfly.clustering.function.Function;
@@ -32,7 +31,6 @@ import org.wildfly.clustering.session.SessionManagerFactory;
  * A distributable Vert.x session store.
  */
 public class DistributableSessionStore implements SessionStore {
-	private static final Logger LOGGER = Logger.getLogger(DistributableSessionStore.class);
 
 	private final BiFunction<io.vertx.core.Context, JsonObject, SessionManagerFactory<io.vertx.core.Context, Void>> factory;
 	private final Runnable closeTask;
@@ -116,7 +114,7 @@ public class DistributableSessionStore implements SessionStore {
 	public Future<io.vertx.ext.web.Session> get(String id) {
 		return this.context.executeBlocking(this::getSessionCloseTask)
 				.compose(closeTask -> Future.fromCompletionStage(this.manager.findSessionAsync(id), this.context)
-				.map(Function.when(Objects::nonNull, Function.<Session<Void>, io.vertx.ext.web.Session>when(Session.VALID, session -> new DistributableSession(this.manager, session, closeTask), Function.of(Consumer.of().thenRun(closeTask), Supplier.of(null))), Function.of(null)))
+				.map(Function.when(Objects::nonNull, Function.<Session<Void>, io.vertx.ext.web.Session>when(ImmutableSession.VALID, session -> new DistributableSession(this.manager, session, closeTask), Function.of(Consumer.of().thenRun(closeTask), Supplier.of(null))), Function.of(null)))
 				.onFailure(e -> closeTask.run()));
 	}
 

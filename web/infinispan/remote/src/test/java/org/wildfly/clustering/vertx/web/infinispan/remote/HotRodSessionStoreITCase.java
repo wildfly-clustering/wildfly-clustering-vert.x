@@ -43,11 +43,11 @@ public class HotRodSessionStoreITCase extends AbstractSessionStoreITCase {
 		InfinispanServerContainer container = INFINISPAN.getContainer();
 		Attributes attributes = this.manifest.getMainAttributes();
 		attributes.put(Attributes.Name.MANIFEST_VERSION, "1.0");
-		attributes.put(new Attributes.Name(HotRodSessionStore.HOTROD_URI), String.format("hotrod://%s:%s@%s:%d", container.getUsername(), container.getPassword(), container.getHost(), container.getPort()));
+		attributes.put(new Attributes.Name(HotRodSessionStore.HOTROD_URI), container.get().toString(true));
 		// Use local cache since our remote cluster has a single member
 		// Reduce expiration interval to speed up expiration verification
 		attributes.put(new Attributes.Name(HotRodSessionStore.CONFIGURATION), """
-{ "local-cache" : { "expiration" : { "interval" : 1000 }, "transaction" : { "mode" : "BATCH", "locking" : "PESSIMISTIC" }}}""");
+{ "local-cache" : { "encoding" : { "key" : { "media-type" : "application/octet-stream" }, "value" : { "media-type" : "application/octet-stream" }}, "expiration" : { "interval" : 1000 }, "transaction" : { "mode" : "NON_XA", "locking" : "PESSIMISTIC" }}}""");
 		attributes.put(new Attributes.Name(DistributableSessionManagerFactoryConfiguration.GRANULARITY), parameters.getSessionPersistenceGranularity().name());
 		attributes.put(new Attributes.Name(DistributableSessionManagerFactoryConfiguration.MARSHALLER), parameters.getSessionMarshallerFactory().name());
 		this.run();
