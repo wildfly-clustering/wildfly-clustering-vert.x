@@ -47,7 +47,7 @@ public class DistributableSession implements VertxSession {
 	@Override
 	public io.vertx.ext.web.Session regenerateId() {
 		String id = this.manager.getIdentifierFactory().get();
-		this.reference.getWriter(Session.VALID).update(currentSession -> {
+		this.reference.getWriter(ImmutableSession.VALID).update(currentSession -> {
 			SessionMetaData currentMetaData = currentSession.getMetaData();
 			Map<String, Object> currentAttributes = currentSession.getAttributes();
 			Session<Void> newSession = this.manager.createSession(id);
