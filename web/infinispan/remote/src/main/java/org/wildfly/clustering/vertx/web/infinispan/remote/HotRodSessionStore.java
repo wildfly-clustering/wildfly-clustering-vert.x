@@ -8,7 +8,6 @@ import java.net.URI;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
-import java.util.OptionalInt;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -25,6 +24,7 @@ import org.infinispan.client.hotrod.configuration.ConfigurationBuilder;
 import org.infinispan.client.hotrod.configuration.NearCacheMode;
 import org.infinispan.client.hotrod.configuration.TransactionMode;
 import org.infinispan.client.hotrod.impl.HotRodURI;
+import org.infinispan.client.hotrod.transaction.lookup.RemoteTransactionManagerLookup;
 import org.infinispan.commons.dataconversion.MediaType;
 import org.infinispan.commons.executors.NonBlockingResource;
 import org.kohsuke.MetaInfServices;
@@ -58,9 +58,24 @@ public class HotRodSessionStore extends DistributableSessionStore {
 {
 	"distributed-cache" : {
 		"mode" : "SYNC",
-		"statistics" : "true",
+		"encoding" : {
+			"key" : {
+				"media-type" : "application/octet-stream"
+			},
+			"value" : {
+				"media-type" : "application/octet-stream"
+			}
+		},
+		"locking" : {
+			"isolation" : "REPEATABLE_READ"
+		},
+		"transaction" : {
+			"mode" : "NON_XA",
+			"locking" : "PESSIMISTIC"
+		}
 	}
-}""";
+}
+""";
 
 	static class NonBlockingThreadGroup extends ThreadGroup implements NonBlockingResource {
 		NonBlockingThreadGroup(String name) {
@@ -107,9 +122,12 @@ public class HotRodSessionStore extends DistributableSessionStore {
 				closeTasks.add(0, container::close);
 
 				String deploymentName = factoryConfiguration.getDeploymentName();
-				OptionalInt maxActiveSessions = factoryConfiguration.getSizeThreshold();
 
-				container.getConfiguration().addRemoteCache(deploymentName, builder -> builder.forceReturnValues(false).nearCacheMode(maxActiveSessions.isEmpty() ? NearCacheMode.DISABLED : NearCacheMode.INVALIDATED).transactionMode(TransactionMode.NONE).configuration(cacheConfiguration));
+				container.getConfiguration().addRemoteCache(deploymentName, builder -> builder.forceReturnValues(false)
+						.nearCacheMode(NearCacheMode.DISABLED)
+						.transactionMode(TransactionMode.NON_XA)
+						.transactionManagerLookup(RemoteTransactionManagerLookup.getInstance())
+						.configuration(cacheConfiguration));
 
 				RemoteCache<?, ?> cache = container.getCache(deploymentName);
 

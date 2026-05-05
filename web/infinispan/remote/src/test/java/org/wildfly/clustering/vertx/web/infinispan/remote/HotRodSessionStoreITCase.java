@@ -7,8 +7,6 @@ package org.wildfly.clustering.vertx.web.infinispan.remote;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.time.Duration;
-import java.util.Optional;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
@@ -33,10 +31,6 @@ public class HotRodSessionStoreITCase extends AbstractSessionStoreITCase {
 
 	private final Manifest manifest = new Manifest();
 
-	public HotRodSessionStoreITCase() {
-		super(Optional.of(Duration.ofSeconds(2)));
-	}
-
 	@ParameterizedTest
 	@ArgumentsSource(HotRodSessionManagementArgumentsProvider.class)
 	public void test(SessionManagementParameters parameters) {
@@ -47,7 +41,7 @@ public class HotRodSessionStoreITCase extends AbstractSessionStoreITCase {
 		// Use local cache since our remote cluster has a single member
 		// Reduce expiration interval to speed up expiration verification
 		attributes.put(new Attributes.Name(HotRodSessionStore.CONFIGURATION), """
-{ "local-cache" : { "encoding" : { "key" : { "media-type" : "application/octet-stream" }, "value" : { "media-type" : "application/octet-stream" }}, "expiration" : { "interval" : 1000 }, "transaction" : { "mode" : "NON_XA", "locking" : "PESSIMISTIC" }}}""");
+{ "local-cache" : { "encoding" : { "key" : { "media-type" : "application/octet-stream" }, "value" : { "media-type" : "application/octet-stream" }}, "expiration" : { "interval" : 1000 }, "locking" : { "isolation" : "REPEATABLE_READ" }, "transaction" : { "mode" : "NON_XA", "locking" : "PESSIMISTIC" }}}""");
 		attributes.put(new Attributes.Name(DistributableSessionManagerFactoryConfiguration.GRANULARITY), parameters.getSessionPersistenceGranularity().name());
 		attributes.put(new Attributes.Name(DistributableSessionManagerFactoryConfiguration.MARSHALLER), parameters.getSessionMarshallerFactory().name());
 		this.run();
