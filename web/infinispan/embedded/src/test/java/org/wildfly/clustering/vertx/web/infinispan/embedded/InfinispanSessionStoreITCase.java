@@ -7,7 +7,6 @@ package org.wildfly.clustering.vertx.web.infinispan.embedded;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.util.Optional;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
@@ -24,10 +23,6 @@ import org.wildfly.clustering.vertx.web.DistributableSessionManagerFactoryConfig
 public class InfinispanSessionStoreITCase extends AbstractSessionStoreITCase {
 
 	private final Manifest manifest = new Manifest();
-
-	public InfinispanSessionStoreITCase() {
-		super(Optional.empty());
-	}
 
 	@ParameterizedTest
 	@ArgumentsSource(InfinispanSessionManagementArgumentsProvider.class)
