@@ -5,10 +5,13 @@
 package org.wildfly.clustering.vertx.web.infinispan.remote;
 
 import java.net.URI;
+import java.util.Deque;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.reactivex.rxjava3.schedulers.Schedulers;
@@ -24,13 +27,15 @@ import org.infinispan.client.hotrod.configuration.ConfigurationBuilder;
 import org.infinispan.client.hotrod.configuration.NearCacheMode;
 import org.infinispan.client.hotrod.configuration.TransactionMode;
 import org.infinispan.client.hotrod.impl.HotRodURI;
-import org.infinispan.client.hotrod.transaction.lookup.RemoteTransactionManagerLookup;
+import org.infinispan.client.hotrod.impl.async.DefaultAsyncExecutorFactory;
 import org.infinispan.commons.dataconversion.MediaType;
+import org.infinispan.commons.executors.ExecutorFactory;
 import org.infinispan.commons.executors.NonBlockingResource;
 import org.kohsuke.MetaInfServices;
 import org.wildfly.clustering.cache.infinispan.marshalling.MediaTypes;
 import org.wildfly.clustering.cache.infinispan.marshalling.UserMarshaller;
 import org.wildfly.clustering.cache.infinispan.remote.RemoteCacheConfiguration;
+import org.wildfly.clustering.cache.infinispan.remote.transaction.RemoteTransactionManagerLookup;
 import org.wildfly.clustering.function.BiFunction;
 import org.wildfly.clustering.function.Runner;
 import org.wildfly.clustering.marshalling.protostream.ClassLoaderMarshaller;
@@ -91,7 +96,7 @@ public class HotRodSessionStore extends DistributableSessionStore {
 		this(new LinkedList<>());
 	}
 
-	private HotRodSessionStore(List<Runnable> closeTasks) {
+	private HotRodSessionStore(Deque<Runnable> closeTasks) {
 		super(new BiFunction<>() {
 			@Override
 			public SessionManagerFactory<Context, Void> apply(Context context, JsonObject options) {
@@ -104,35 +109,48 @@ public class HotRodSessionStore extends DistributableSessionStore {
 				properties.putAll(options.getJsonObject(PROPERTIES, JsonObject.of()).getMap());
 
 				COUNTER.incrementAndGet();
-				closeTasks.add(0, () -> {
+				closeTasks.add(() -> {
 					// Stop RxJava schedulers when no longer in use
 					if (COUNTER.decrementAndGet() == 0) {
 						Schedulers.shutdown();
 					}
 				});
 
+				ThreadPoolExecutor executor = new DefaultAsyncExecutorFactory().getExecutor(properties);
 				Configuration configuration = ((uri != null) ? HotRodURI.create(uri).toConfigurationBuilder() : new ConfigurationBuilder())
 						.withProperties(properties)
 						.marshaller(new UserMarshaller(MediaTypes.WILDFLY_PROTOSTREAM, new ProtoStreamByteBufferMarshaller(SerializationContextBuilder.newInstance(ClassLoaderMarshaller.of(loader)).load(loader).build())))
-						.asyncExecutorFactory().factory(new NonBlockingExecutorFactory(loader))
+						.asyncExecutorFactory().factory(new ExecutorFactory() {
+							@Override
+							public ExecutorService getExecutor(Properties p) {
+								return executor;
+							}
+						})
 						.build();
+				closeTasks.add(() -> {
+					try {
+						executor.awaitTermination(configuration.transactionTimeout(), TimeUnit.MILLISECONDS);
+					} catch (InterruptedException e) {
+						Thread.currentThread().interrupt();
+					}
+				});
 
 				RemoteCacheManager container = new RemoteCacheManager(configuration, false);
 				container.start();
-				closeTasks.add(0, container::close);
+				closeTasks.add(container::close);
 
 				String deploymentName = factoryConfiguration.getDeploymentName();
 
 				container.getConfiguration().addRemoteCache(deploymentName, builder -> builder.forceReturnValues(false)
 						.nearCacheMode(NearCacheMode.DISABLED)
 						.transactionMode(TransactionMode.NON_XA)
-						.transactionManagerLookup(RemoteTransactionManagerLookup.getInstance())
+						.transactionManagerLookup(RemoteTransactionManagerLookup.INSTANCE)
 						.configuration(cacheConfiguration));
 
 				RemoteCache<?, ?> cache = container.getCache(deploymentName);
 
 				cache.start();
-				closeTasks.add(0, cache::stop);
+				closeTasks.add(cache::stop);
 
 				DataFormat format = DataFormat.builder()
 						.keyType(MediaType.APPLICATION_OBJECT).keyMarshaller(container.getMarshaller())
@@ -150,6 +168,6 @@ public class HotRodSessionStore extends DistributableSessionStore {
 					}
 				});
 			}
-		}, Runner.of(closeTasks));
+		}, Runner.of(closeTasks::descendingIterator));
 	}
 }

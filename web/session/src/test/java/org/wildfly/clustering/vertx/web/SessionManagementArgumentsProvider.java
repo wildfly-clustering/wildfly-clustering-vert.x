@@ -23,7 +23,7 @@ public class SessionManagementArgumentsProvider implements ArgumentsProvider {
 		Stream.Builder<Arguments> builder = Stream.builder();
 		for (SessionPersistenceGranularity strategy : EnumSet.allOf(SessionPersistenceGranularity.class)) {
 			for (SessionAttributeMarshaller marshaller : EnumSet.allOf(SessionAttributeMarshaller.class)) {
-				builder.add(Arguments.of(new SessionManagementParameters() {
+				builder.add(Arguments.of(new SessionManagementArguments() {
 					@Override
 					public SessionPersistenceGranularity getSessionPersistenceGranularity() {
 						return strategy;

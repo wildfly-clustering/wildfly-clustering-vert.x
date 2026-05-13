@@ -6,14 +6,13 @@
 package org.wildfly.clustering.vertx.web.infinispan.remote;
 
 import java.util.EnumSet;
-import java.util.Map;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.wildfly.clustering.vertx.web.SessionAttributeMarshaller;
-import org.wildfly.clustering.vertx.web.SessionManagementParameters;
+import org.wildfly.clustering.vertx.web.SessionManagementArguments;
 import org.wildfly.clustering.vertx.web.SessionPersistenceGranularity;
 
 /**
@@ -24,12 +23,12 @@ public class HotRodSessionManagementArgumentsProvider implements ArgumentsProvid
 	@Override
 	public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
 		Stream.Builder<Arguments> builder = Stream.builder();
-		for (SessionPersistenceGranularity strategy : EnumSet.allOf(SessionPersistenceGranularity.class)) {
+		for (SessionPersistenceGranularity granularity : EnumSet.allOf(SessionPersistenceGranularity.class)) {
 			for (SessionAttributeMarshaller marshaller : EnumSet.allOf(SessionAttributeMarshaller.class)) {
-				builder.add(Arguments.of(new SessionManagementParameters() {
+				builder.add(Arguments.of(new SessionManagementArguments() {
 					@Override
 					public SessionPersistenceGranularity getSessionPersistenceGranularity() {
-						return strategy;
+						return granularity;
 					}
 
 					@Override
@@ -39,7 +38,7 @@ public class HotRodSessionManagementArgumentsProvider implements ArgumentsProvid
 
 					@Override
 					public String toString() {
-						return Map.of("granularity", strategy, "marshaller", marshaller).toString();
+						return String.format("%s-%s", granularity, marshaller).toString();
 					}
 				}));
 			}

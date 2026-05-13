@@ -4,14 +4,9 @@
  */
 package org.wildfly.clustering.vertx.web.infinispan.remote;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
-import org.jboss.shrinkwrap.api.asset.ByteArrayAsset;
-import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ArgumentsSource;
@@ -19,42 +14,43 @@ import org.wildfly.clustering.cache.ContainerProvider;
 import org.wildfly.clustering.cache.infinispan.remote.InfinispanServerContainer;
 import org.wildfly.clustering.cache.infinispan.remote.InfinispanServerExtension;
 import org.wildfly.clustering.vertx.web.AbstractSessionStoreITCase;
-import org.wildfly.clustering.vertx.web.DistributableSessionManagerFactoryConfiguration;
-import org.wildfly.clustering.vertx.web.SessionManagementParameters;
+import org.wildfly.clustering.vertx.web.SessionAttributeMarshaller;
+import org.wildfly.clustering.vertx.web.SessionManagementArguments;
+import org.wildfly.clustering.vertx.web.SessionPersistenceGranularity;
 
 /**
  * @author Paul Ferraro
  */
-public class HotRodSessionStoreITCase extends AbstractSessionStoreITCase {
+public class HotRodSessionStoreITCase extends AbstractSessionStoreITCase<SessionManagementArguments> {
 	@RegisterExtension
 	static final ContainerProvider<InfinispanServerContainer> INFINISPAN = new InfinispanServerExtension();
 
-	private final Manifest manifest = new Manifest();
-
 	@ParameterizedTest
 	@ArgumentsSource(HotRodSessionManagementArgumentsProvider.class)
-	public void test(SessionManagementParameters parameters) {
+	public void test(SessionManagementArguments arguments) {
 		InfinispanServerContainer container = INFINISPAN.getContainer();
-		Attributes attributes = this.manifest.getMainAttributes();
-		attributes.put(Attributes.Name.MANIFEST_VERSION, "1.0");
-		attributes.put(new Attributes.Name(HotRodSessionStore.HOTROD_URI), container.get().toString(true));
-		// Use local cache since our remote cluster has a single member
-		// Reduce expiration interval to speed up expiration verification
-		attributes.put(new Attributes.Name(HotRodSessionStore.CONFIGURATION), """
-{ "local-cache" : { "encoding" : { "key" : { "media-type" : "application/octet-stream" }, "value" : { "media-type" : "application/octet-stream" }}, "expiration" : { "interval" : 1000 }, "locking" : { "isolation" : "REPEATABLE_READ" }, "transaction" : { "mode" : "NON_XA", "locking" : "PESSIMISTIC" }}}""");
-		attributes.put(new Attributes.Name(DistributableSessionManagerFactoryConfiguration.GRANULARITY), parameters.getSessionPersistenceGranularity().name());
-		attributes.put(new Attributes.Name(DistributableSessionManagerFactoryConfiguration.MARSHALLER), parameters.getSessionMarshallerFactory().name());
-		this.run();
-	}
+		this.accept(new SessionManagementArguments() {
+			@Override
+			public SessionPersistenceGranularity getSessionPersistenceGranularity() {
+				return arguments.getSessionPersistenceGranularity();
+			}
 
-	@Override
-	public JavaArchive createArchive(org.wildfly.clustering.session.container.SessionManagementTesterConfiguration configuration) {
-		ByteArrayOutputStream output = new ByteArrayOutputStream();
-		try {
-			this.manifest.write(output);
-		} catch (IOException e) {
-			throw new UncheckedIOException(e);
-		}
-		return super.createArchive(configuration).setManifest(new ByteArrayAsset(output.toByteArray()));
+			@Override
+			public SessionAttributeMarshaller getSessionMarshallerFactory() {
+				return arguments.getSessionMarshallerFactory();
+			}
+
+			@Override
+			public Manifest getManifest() {
+				Manifest manifest = SessionManagementArguments.super.getManifest();
+				Attributes attributes = manifest.getMainAttributes();
+				attributes.put(new Attributes.Name(HotRodSessionStore.HOTROD_URI), container.get().toString(true));
+				// Use local cache since our remote cluster has a single member
+				// Reduce expiration interval to speed up expiration verification
+				attributes.put(new Attributes.Name(HotRodSessionStore.CONFIGURATION), """
+		{ "local-cache" : { "encoding" : { "key" : { "media-type" : "application/octet-stream" }, "value" : { "media-type" : "application/octet-stream" }}, "expiration" : { "interval" : 1000 }, "locking" : { "isolation" : "REPEATABLE_READ" }, "transaction" : { "mode" : "NON_XA", "locking" : "PESSIMISTIC" }}}""");
+				return manifest;
+			}
+		});
 	}
 }
