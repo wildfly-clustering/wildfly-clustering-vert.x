@@ -29,10 +29,10 @@ public class JsonSerializationContextInitializer extends AbstractSerializationCo
 		super(JsonObject.class.getPackage());
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public void registerMarshallers(SerializationContext context) {
 		context.registerMarshaller(JsonObjectMarshaller.INSTANCE);
-		@SuppressWarnings("unchecked")
 		ProtoStreamMarshaller<List<Object>> listMarshaller = (ProtoStreamMarshaller<List<Object>>) (ProtoStreamMarshaller<?>) context.getMarshaller(ArrayList.class);
 		context.registerMarshaller(listMarshaller.wrap(JsonArray.class, JsonArray::getList, JsonArray::new));
 	}

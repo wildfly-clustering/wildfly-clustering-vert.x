@@ -28,7 +28,7 @@ public class VertxWebContainerConfiguration implements ContainerConfiguration {
 	}
 
 	@Override
-	public void validate(){
+	public void validate() {
 	}
 
 	/**
