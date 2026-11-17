@@ -34,25 +34,12 @@
 
 		<dependency>
 			<groupId>org.wildfly.clustering</groupId>
-			<artifactId>wildfly-clustering-arquillian</artifactId>
+			<artifactId>wildfly-clustering-container-infinispan</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.wildfly.clustering</groupId>
-			<artifactId>wildfly-clustering-cache-infinispan-remote</artifactId>
-			<classifier>tests</classifier>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.wildfly.clustering</groupId>
-			<artifactId>wildfly-clustering-cache-spi</artifactId>
-			<classifier>tests</classifier>
-			<scope>test</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>org.testcontainers</groupId>
-			<artifactId>testcontainers</artifactId>
+			<artifactId>wildfly-clustering-junit</artifactId>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

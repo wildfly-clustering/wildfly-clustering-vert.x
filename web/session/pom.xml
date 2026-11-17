@@ -66,6 +66,11 @@
 		</dependency>
 		<dependency>
 			<groupId>org.wildfly.clustering</groupId>
+			<artifactId>wildfly-clustering-junit</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.wildfly.clustering</groupId>
 			<artifactId>wildfly-clustering-marshalling-spi</artifactId>
 			<scope>test</scope>
 			<classifier>tests</classifier>
